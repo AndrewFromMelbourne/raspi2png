@@ -36,9 +36,9 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-	int width = modeInfo.width;
-	int height = modeInfo.height;
-	int pitch = ALIGN_UP(3 * width, 32);
+    int width = modeInfo.width;
+    int height = modeInfo.height;
+    int pitch = ALIGN_UP(3 * width, 32);
 
     uint32_t vcImagePtr;
     void *imagePtr = malloc(pitch * height);
