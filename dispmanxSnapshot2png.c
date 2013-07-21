@@ -1,4 +1,5 @@
 #include <png.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,10 +15,33 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc > 2)
+    int opt;
+    char *pngname = "snapshot.png";
+    bool align_pitch = false;
+
+    //-------------------------------------------------------------------
+
+    while ((opt = getopt(argc, argv, "ap:")) != -1)
     {
-        fprintf(stderr, "Usage: %s <snapshotName.png>\n", argv[0]);
-        exit(EXIT_FAILURE);
+        switch (opt)
+        {
+        case 'a':
+
+            align_pitch = true;
+            break;
+
+        case 'p':
+
+            pngname = optarg;
+            break;
+
+        default:
+
+            fprintf(stderr, "Usage: %s [-a] [-d pngname]>\n", argv[0]);
+            fprintf(stderr, "    -a - align pitch to 32 pixels\n");
+            exit(EXIT_FAILURE);
+            break;
+        }
     }
 
     //-------------------------------------------------------------------
@@ -38,7 +62,12 @@ int main(int argc, char *argv[])
 
     int width = modeInfo.width;
     int height = modeInfo.height;
-    int pitch = ALIGN_UP(3 * width, 32);
+    int pitch = 3 * width;
+    
+    if (align_pitch)
+    {
+        pitch = ALIGN_UP(pitch, 32);
+    }
 
     uint32_t vcImagePtr;
     void *imagePtr = malloc(pitch * height);
@@ -98,13 +127,6 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "%s: unable to create PNG\n", argv[0]);
         exit(EXIT_FAILURE);
-    }
-
-    const char *pngname = "snapshot.png";
-
-    if (argc > 1)
-    {
-        pngname = argv[1];
     }
 
     FILE *pngfp = fopen(pngname, "wb");
