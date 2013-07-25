@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     }
 
     png_write_end(pngPtr, NULL);
-	png_destroy_write_struct(&pngPtr, &infoPtr);
+    png_destroy_write_struct(&pngPtr, &infoPtr);
     fclose(pngfp);
 
     //-------------------------------------------------------------------
