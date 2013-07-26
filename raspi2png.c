@@ -1,3 +1,4 @@
+#include <math.h>
 #include <png.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -9,10 +10,8 @@
 
 //-----------------------------------------------------------------------
 
-#define ALIGN_TO 16
-
-#ifndef ALIGN_UP
-#define ALIGN_UP(x,y)  ((x + (y)-1) & ~((y)-1))
+#ifndef ALIGN_TO_16
+#define ALIGN_TO_16(x)  ((x + 15) & ~15)
 #endif
 
 //-----------------------------------------------------------------------
@@ -271,10 +270,13 @@ int main(int argc, char *argv[])
     }
     else if (requestedWidth > 0)
     {
-        height = (modeInfo.height * requestedWidth) / modeInfo.width;
+		double numerator = modeInfo.height * requestedWidth;
+		double denominator = modeInfo.width;
+
+		height = (int)ceil(numerator/denominator);
     }
 
-    int pitch = bytesPerPixel * ALIGN_UP(width, ALIGN_TO);
+    int pitch = bytesPerPixel * ALIGN_TO_16(width);
 
     if (verbose)
     {
