@@ -270,10 +270,10 @@ int main(int argc, char *argv[])
     }
     else if (requestedWidth > 0)
     {
-		double numerator = modeInfo.height * requestedWidth;
-		double denominator = modeInfo.width;
+        double numerator = modeInfo.height * requestedWidth;
+        double denominator = modeInfo.width;
 
-		height = (int)ceil(numerator/denominator);
+        height = (int)ceil(numerator/denominator);
     }
 
     int pitch = bytesPerPixel * ALIGN_TO_16(width);
