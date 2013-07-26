@@ -1,5 +1,5 @@
-OBJS=dispmanxSnapshot2png.o
-BIN=dispmanxSnapshot2png
+OBJS=raspi2png.o
+BIN=raspi2png
 
 LDFLAGS+=-lpng
 
