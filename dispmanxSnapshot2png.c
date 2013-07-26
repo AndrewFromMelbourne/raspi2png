@@ -17,17 +17,20 @@ int main(int argc, char *argv[])
 {
     int opt;
     char *pngname = "snapshot.png";
-    bool align_pitch = false;
+    int align_to = 16;
+    int requested_width = 0;
+    int requested_height = 0;
+    bool verbose = false;
 
     //-------------------------------------------------------------------
 
-    while ((opt = getopt(argc, argv, "ap:")) != -1)
+    while ((opt = getopt(argc, argv, "h:p:vw:")) != -1)
     {
         switch (opt)
         {
-        case 'a':
+        case 'h':
 
-            align_pitch = true;
+            requested_height = atoi(optarg);
             break;
 
         case 'p':
@@ -35,10 +38,29 @@ int main(int argc, char *argv[])
             pngname = optarg;
             break;
 
+        case 'v':
+
+            verbose = true;
+            break;
+
+        case 'w':
+
+            requested_width = atoi(optarg);
+            break;
+
         default:
 
-            fprintf(stderr, "Usage: %s [-a] [-d pngname]>\n", argv[0]);
-            fprintf(stderr, "    -a - align pitch to 32 pixels\n");
+            fprintf(stderr, "Usage: %s [-p pngname] [-v]", argv[0]);
+            fprintf(stderr, " [-w <width>] [-h <height>]\n");
+
+            fprintf(stderr, "    -p - name of png file to create\n");
+            fprintf(stderr, "    -v - verbose\n");
+
+            fprintf(stderr,
+                    "    -h - image height (default is screen height)\n");
+            fprintf(stderr,
+                    "    -w - image width (default is screen width)\n");
+
             exit(EXIT_FAILURE);
             break;
         }
@@ -62,11 +84,32 @@ int main(int argc, char *argv[])
 
     int width = modeInfo.width;
     int height = modeInfo.height;
-    int pitch = 3 * width;
-    
-    if (align_pitch)
+
+    if (requested_width > 0)
     {
-        pitch = ALIGN_UP(pitch, 32);
+        width = requested_width;
+    }
+
+    if (requested_height > 0)
+    {
+        height = requested_height;
+    }
+    else if (requested_width > 0)
+    {
+        height = (modeInfo.height * requested_width) / modeInfo.width;
+    }
+
+    int pitch = 3 * ALIGN_UP(width, align_to);
+
+    if (verbose)
+    {
+        printf("screen width = %d\n", modeInfo.width);
+        printf("screen height = %d\n", modeInfo.height);
+        printf("requested width = %d\n", requested_width);
+        printf("requested height = %d\n", requested_height);
+        printf("image width = %d\n", width);
+        printf("image height = %d\n", height);
+        printf("pitch = %d\n", pitch);
     }
 
     uint32_t vcImagePtr;
@@ -84,14 +127,32 @@ int main(int argc, char *argv[])
                                                  height,
                                                  &vcImagePtr);
 
-    vc_dispmanx_snapshot(displayHandle, resourceHandle, 0);
+    int result = 0;
+    
+    result = vc_dispmanx_snapshot(displayHandle, resourceHandle, 0);
+
+    if (verbose)
+    {
+        printf("vc_dispmanx_snapshot() returned %d\n", result);
+    }
 
     VC_RECT_T rect;
-    vc_dispmanx_rect_set(&rect, 0, 0, width, height);
-    vc_dispmanx_resource_read_data(resourceHandle,
-                                   &rect,
-                                   imagePtr,
-                                   pitch);
+    result = vc_dispmanx_rect_set(&rect, 0, 0, width, height);
+
+    if (verbose)
+    {
+        printf("vc_dispmanx_rect_set() returned %d\n", result);
+    }
+
+    result = vc_dispmanx_resource_read_data(resourceHandle,
+                                            &rect,
+                                            imagePtr,
+                                            pitch);
+
+    if (verbose)
+    {
+        printf("vc_dispmanx_resource_read_data() returned %d\n", result);
+    }
 
     vc_dispmanx_resource_delete(resourceHandle);
     vc_dispmanx_display_close(displayHandle);
