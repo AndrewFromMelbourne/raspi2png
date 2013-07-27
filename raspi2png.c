@@ -71,9 +71,13 @@ pngWriteImageRGB565(
             uint16_t pixels = *(uint16_t*)(buffer + (y * pitch) + (x * 2));
             int index = x * 3;
 
-            imageRow[index] =  ((pixels >> 11) * 0xFF) / 0x1F;
-            imageRow[index + 1] =  (((pixels >> 5) & 0x3F) * 0xFF) / 0x3F;
-            imageRow[index + 2] =  ((pixels & 0x1F) * 0xFF) / 0x1F;
+			uint8_t r5 = (pixels >> 11) & 0x1F;
+			uint8_t g6 = (pixels >> 5) & 0x3F;
+			uint8_t b5 = (pixels) & 0x1F;
+
+            imageRow[index] =  (r5 << 3) | (r5 >> 2);
+            imageRow[index + 1] =  (g6 << 2) | (g6 >> 4);
+            imageRow[index + 2] =  (b5 << 3) | (b5 >> 2);
         }
         png_write_row(pngPtr, imageRow);
 
