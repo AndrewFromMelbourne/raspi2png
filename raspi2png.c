@@ -28,8 +28,8 @@ typedef struct
 }
 ImageInfo;
 
-#define IMAGE_INFO_ENTRY(x, y) \
-    { .name=(#x), .type=(VC_IMAGE_ ## x), .bytesPerPixel=(y) }
+#define IMAGE_INFO_ENTRY(t, b) \
+    { .name=(#t), .type=(VC_IMAGE_ ## t), .bytesPerPixel=(b) }
 
 ImageInfo imageInfo[] =
 {
