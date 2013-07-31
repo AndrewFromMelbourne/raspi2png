@@ -20,28 +20,26 @@ const char* program = NULL;
 
 //-----------------------------------------------------------------------
 
-static const char* imageTypeNames[] =
+typedef struct
 {
-    "RGB565",
-    "RGB888",
-    "RGBA32"
+    const char* name;
+    VC_IMAGE_TYPE_T type;
+    int bytesPerPixel;
+}
+ImageInfo;
+
+#define IMAGE_INFO_ENTRY(x, y) \
+    { .name=(#x), .type=(VC_IMAGE_ ## x), .bytesPerPixel=(y) }
+
+ImageInfo imageInfo[] =
+{
+    IMAGE_INFO_ENTRY(RGB565, 2),
+    IMAGE_INFO_ENTRY(RGB888, 3),
+    IMAGE_INFO_ENTRY(RGBA32, 4)
 };
 
-static const VC_IMAGE_TYPE_T imageTypes[] =
-{
-    VC_IMAGE_RGB565,
-    VC_IMAGE_RGB888,
-    VC_IMAGE_RGBA32
-};
+static size_t imageEntries = sizeof(imageInfo)/sizeof(imageInfo[0]);
 
-static int imageBytesPerPixel[] =
-{
-    2,
-    3,
-    4
-};
-
-static size_t imageEntries = sizeof(imageTypeNames)/sizeof(imageTypeNames[0]);
 //-----------------------------------------------------------------------
 
 void
@@ -213,7 +211,7 @@ int main(int argc, char *argv[])
             size_t entry = 0;
             for (entry = 0; entry < imageEntries; entry++)
             {
-                fprintf(stderr, " %s", imageTypeNames[entry]);
+                fprintf(stderr, " %s", imageInfo[entry].name);
             }
             fprintf(stderr, "\n");
 
@@ -227,10 +225,10 @@ int main(int argc, char *argv[])
     size_t entry = 0;
     for (entry = 0; entry < imageEntries; entry++)
     {
-        if (strcmp(imageTypeName, imageTypeNames[entry]) == 0)
+        if (strcmp(imageTypeName, imageInfo[entry].name) == 0)
         {
-            imageType = imageTypes[entry];
-            bytesPerPixel =  imageBytesPerPixel[entry];
+            imageType = imageInfo[entry].type;
+            bytesPerPixel =  imageInfo[entry].bytesPerPixel;
             break;
         }
     }
