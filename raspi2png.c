@@ -359,11 +359,11 @@ int main(int argc, char *argv[])
     if (verbose)
     {
         printf("vc_dispmanx_rect_set() returned %d\n", result);
-		printf("rect = { %d, %d, %d, %d }\n",
-			   rect.x,
-			   rect.y,
-			   rect.width,
-			   rect.height);
+        printf("rect = { %d, %d, %d, %d }\n",
+               rect.x,
+               rect.y,
+               rect.width,
+               rect.height);
     }
 
     if (result != 0)
