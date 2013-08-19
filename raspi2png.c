@@ -179,6 +179,7 @@ int main(int argc, char *argv[])
     int requestedWidth = 0;
     int requestedHeight = 0;
     bool verbose = false;
+    int delay = 0;
 
     const char* imageTypeName = "RGB888";
     VC_IMAGE_TYPE_T imageType = VC_IMAGE_MIN;
@@ -190,10 +191,15 @@ int main(int argc, char *argv[])
 
     //-------------------------------------------------------------------
 
-    while ((opt = getopt(argc, argv, "h:p:t:vw:")) != -1)
+    while ((opt = getopt(argc, argv, "d:h:p:t:vw:")) != -1)
     {
         switch (opt)
         {
+        case 'd':
+
+            delay = atoi(optarg);
+            break;
+
         case 'h':
 
             requestedHeight = atoi(optarg);
@@ -222,7 +228,8 @@ int main(int argc, char *argv[])
         default:
 
             fprintf(stderr, "Usage: %s [-p pngname] [-v]", program);
-            fprintf(stderr, " [-w <width>] [-h <height>] [-t <type>]\n");
+            fprintf(stderr, " [-w <width>] [-h <height>] [-t <type>]");
+            fprintf(stderr, " [-d <delay>]\n");
 
             fprintf(stderr, "    -p - name of png file to create\n");
             fprintf(stderr, "    -v - verbose\n");
@@ -240,6 +247,8 @@ int main(int argc, char *argv[])
             {
                 fprintf(stderr, " %s", imageInfo[entry].name);
             }
+            fprintf(stderr, "\n");
+            fprintf(stderr, "    -d - delay in seconds (default 0)\n");
             fprintf(stderr, "\n");
 
             exit(EXIT_FAILURE);
@@ -268,6 +277,18 @@ int main(int argc, char *argv[])
                 imageTypeName);
 
         exit(EXIT_FAILURE);
+    }
+
+    //-------------------------------------------------------------------
+
+    if (delay)
+    {
+        if (verbose)
+        {
+            printf("sleeping for %d seconds ...\n", delay);
+        }
+
+        sleep(delay);
     }
 
     //-------------------------------------------------------------------
