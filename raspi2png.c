@@ -62,6 +62,7 @@ ImageInfo imageInfo[] =
 {
     IMAGE_INFO_ENTRY(RGB565, 2),
     IMAGE_INFO_ENTRY(RGB888, 3),
+    IMAGE_INFO_ENTRY(RGBA16, 2),
     IMAGE_INFO_ENTRY(RGBA32, 4)
 };
 
@@ -127,6 +128,50 @@ pngWriteImageRGB888(
     {
         png_write_row(pngPtr, buffer + (pitch * y));
     }
+}
+
+//-----------------------------------------------------------------------
+
+void
+pngWriteImageRGBA16(
+    int width,
+    int height,
+    int pitch,
+    void* buffer,
+    png_structp pngPtr,
+    png_infop infoPtr)
+{
+    int rowLength = 3 * width;
+    uint8_t *imageRow = malloc(rowLength);
+
+    if (imageRow == NULL)
+    {
+        fprintf(stderr, "%s: unable to allocated row buffer\n", program);
+        exit(EXIT_FAILURE);
+    }
+
+    int y = 0;
+    for (y = 0; y < height; y++)
+    {
+        int x = 0;
+        for (x = 0; x < width; x++)
+        {
+            uint16_t pixels = *(uint16_t*)(buffer + (y * pitch) + (x * 2));
+            int index = x * 3;
+
+            uint8_t r4 = (pixels >> 12) & 0xF;
+            uint8_t g4 = (pixels >> 8) & 0xF;
+            uint8_t b4 = (pixels >> 4) & 0xF;
+
+            imageRow[index] =  (r4 << 4) | r4;
+            imageRow[index + 1] =  (g4 << 4) | g4;
+            imageRow[index + 2] =  (b4 << 4) | b4;
+        }
+        png_write_row(pngPtr, imageRow);
+
+    }
+
+    free(imageRow);
 }
 
 //-----------------------------------------------------------------------
@@ -509,6 +554,16 @@ int main(int argc, char *argv[])
     case VC_IMAGE_RGB888:
 
         pngWriteImageRGB888(width,
+                            height,
+                            pitch,
+                            dmxImagePtr,
+                            pngPtr,
+                            infoPtr);
+        break;
+
+    case VC_IMAGE_RGBA16:
+
+        pngWriteImageRGBA16(width,
                             height,
                             pitch,
                             dmxImagePtr,
