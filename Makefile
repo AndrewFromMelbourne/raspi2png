@@ -1,8 +1,8 @@
 OBJS=raspi2png.o
 BIN=raspi2png
 
-CFLAGS+=-Wall -g -O3
-LDFLAGS+=-lpng -L/opt/vc/lib/ -lbcm_host
+CFLAGS+=-Wall -g -O3 $(shell libpng-config --cflags)
+LDFLAGS+=-L/opt/vc/lib/ -lbcm_host $(shell libpng-config --ldflags)
 
 INCLUDES+=-I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux
 
