@@ -141,7 +141,7 @@ pngWriteImageRGBA16(
     png_structp pngPtr,
     png_infop infoPtr)
 {
-    int rowLength = 3 * width;
+    int rowLength = 4 * width;
     uint8_t *imageRow = malloc(rowLength);
 
     if (imageRow == NULL)
@@ -157,15 +157,17 @@ pngWriteImageRGBA16(
         for (x = 0; x < width; x++)
         {
             uint16_t pixels = *(uint16_t*)(buffer + (y * pitch) + (x * 2));
-            int index = x * 3;
+            int index = x * 4;
 
             uint8_t r4 = (pixels >> 12) & 0xF;
             uint8_t g4 = (pixels >> 8) & 0xF;
             uint8_t b4 = (pixels >> 4) & 0xF;
+            uint8_t a4 = pixels & 0xF;
 
             imageRow[index] =  (r4 << 4) | r4;
             imageRow[index + 1] =  (g4 << 4) | g4;
             imageRow[index + 2] =  (b4 << 4) | b4;
+            imageRow[index + 3] =  (a4 << 4) | a4;
         }
         png_write_row(pngPtr, imageRow);
 
@@ -185,33 +187,11 @@ pngWriteImageRGBA32(
     png_structp pngPtr,
     png_infop infoPtr)
 {
-    int rowLength = 3 * width;
-    uint8_t *imageRow = malloc(rowLength);
-
-    if (imageRow == NULL)
-    {
-        fprintf(stderr, "%s: unable to allocated row buffer\n", program);
-        exit(EXIT_FAILURE);
-    }
-
     int y = 0;
     for (y = 0; y < height; y++)
     {
-        int x = 0;
-        for (x = 0; x < width; x++)
-        {
-            uint8_t *pixels = (uint8_t*)(buffer + (y * pitch) + (x * 4));
-            int index = x * 3;
-
-            imageRow[index] =  pixels[0];
-            imageRow[index + 1] =  pixels[1];
-            imageRow[index + 2] =  pixels[2];
-        }
-        png_write_row(pngPtr, imageRow);
-
+        png_write_row(pngPtr, buffer + (pitch * y));
     }
-
-    free(imageRow);
 }
 
 //-----------------------------------------------------------------------
@@ -526,13 +506,20 @@ int main(int argc, char *argv[])
 
     png_init_io(pngPtr, pngfp);
 
+    int png_color_type = PNG_COLOR_TYPE_RGB;
+
+    if ((imageType == VC_IMAGE_RGBA16) ||(imageType == VC_IMAGE_RGBA32))
+    {
+        png_color_type = PNG_COLOR_TYPE_RGBA;
+    }
+
     png_set_IHDR(
         pngPtr,
         infoPtr,
         width,
         height,
         8,
-        PNG_COLOR_TYPE_RGB,
+        png_color_type,
         PNG_INTERLACE_NONE,
         PNG_COMPRESSION_TYPE_BASE,
         PNG_FILTER_TYPE_BASE);
