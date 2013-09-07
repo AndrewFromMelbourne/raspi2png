@@ -1,0 +1,7 @@
+# object files
+
+*.o
+
+# programs
+
+raspi2png
