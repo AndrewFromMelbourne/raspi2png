@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
     size_t entry = 0;
     for (entry = 0; entry < imageEntries; entry++)
     {
-        if (strcmp(imageTypeName, imageInfo[entry].name) == 0)
+        if (strcasecmp(imageTypeName, imageInfo[entry].name) == 0)
         {
             imageType = imageInfo[entry].type;
             bytesPerPixel =  imageInfo[entry].bytesPerPixel;
