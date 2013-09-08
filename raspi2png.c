@@ -508,7 +508,7 @@ int main(int argc, char *argv[])
 
     int png_color_type = PNG_COLOR_TYPE_RGB;
 
-    if ((imageType == VC_IMAGE_RGBA16) ||(imageType == VC_IMAGE_RGBA32))
+    if ((imageType == VC_IMAGE_RGBA16) || (imageType == VC_IMAGE_RGBA32))
     {
         png_color_type = PNG_COLOR_TYPE_RGBA;
     }
