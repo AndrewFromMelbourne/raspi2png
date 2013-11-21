@@ -25,6 +25,8 @@
 //
 //-------------------------------------------------------------------------
 
+#define _GNU_SOURCE
+
 #include <math.h>
 #include <png.h>
 #include <stdbool.h>
@@ -212,7 +214,7 @@ int main(int argc, char *argv[])
 
     int result = 0;
 
-    program = argv[0];
+    program = basename(argv[0]);
 
     //-------------------------------------------------------------------
 
@@ -256,7 +258,8 @@ int main(int argc, char *argv[])
             fprintf(stderr, " [-w <width>] [-h <height>] [-t <type>]");
             fprintf(stderr, " [-d <delay>]\n");
 
-            fprintf(stderr, "    -p - name of png file to create\n");
+            fprintf(stderr, "    -p - name of png file to create ");
+            fprintf(stderr, "(default is %s)\n", pngName);
             fprintf(stderr, "    -v - verbose\n");
 
             fprintf(stderr,
@@ -337,18 +340,27 @@ int main(int argc, char *argv[])
     if (requestedWidth > 0)
     {
         width = requestedWidth;
+
+        if (requestedHeight == 0)
+        {
+            double numerator = modeInfo.height * requestedWidth;
+            double denominator = modeInfo.width;
+
+            height = (int)ceil(numerator / denominator);
+        }
     }
 
     if (requestedHeight > 0)
     {
         height = requestedHeight;
-    }
-    else if (requestedWidth > 0)
-    {
-        double numerator = modeInfo.height * requestedWidth;
-        double denominator = modeInfo.width;
 
-        height = (int)ceil(numerator/denominator);
+        if (requestedWidth == 0)
+        {
+            double numerator = modeInfo.width * requestedHeight;
+            double denominator = modeInfo.height;
+
+            width = (int)ceil(numerator / denominator);
+        }
     }
 
     int pitch = bytesPerPixel * ALIGN_TO_16(width);
@@ -583,3 +595,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+

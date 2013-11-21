@@ -4,7 +4,7 @@ raspi2png
 Utility to take a snapshot of the raspberry pi screen and save it as a PNG file
 
     Usage: raspi2png [-p pngname] [-v] [-w ] [-h ] [-t ] [-d ]
-    -p - name of png file to create
+    -p - name of png file to create (default is snapshot.png)
     -v - verbose
     -h - image height (default is screen height)
     -w - image width (default is screen width)
