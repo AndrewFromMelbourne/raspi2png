@@ -309,6 +309,53 @@ int main(int argc, char *argv[])
 
     //-------------------------------------------------------------------
 
+    bcm_host_init();
+
+    //-------------------------------------------------------------------
+    //
+    // Calling vc_dispmanx_snapshot() fails when the display is rotate
+    // either 90 or 270 degrees. It sometimes causes the program to hang.
+    // check the config to make sure the screen is not rotated.
+    //
+
+    char response[1024];
+    int display_rotate = 0;
+
+    if (vc_gencmd(response, sizeof(response), "get_config int") == 0)
+    {
+        char *saveptr = NULL;
+        char *token = strtok_r(response, "\n", &saveptr);
+
+        while (token != NULL)
+        {
+            char setting[100];
+            char value[100];
+
+            if (sscanf(token, "%[^=]=%s", setting, value) == 2)
+            {
+                if (strcmp(setting, "display_rotate") == 0)
+                {
+                    display_rotate = strtod(value, NULL);
+                }
+            }
+
+            token = strtok_r(NULL, "\n", &saveptr);
+        }
+    }
+
+    // only need to check low bit of display_rotate (value of 1 or 3).
+
+    if (display_rotate & 1)
+    {
+        fprintf(stderr,
+                "%s: cannot create screenshot for rotated display\n",
+                program);
+
+        exit(EXIT_FAILURE);
+    }
+
+    //-------------------------------------------------------------------
+
     if (delay)
     {
         if (verbose)
@@ -320,8 +367,6 @@ int main(int argc, char *argv[])
     }
 
     //-------------------------------------------------------------------
-
-    bcm_host_init();
 
     DISPMANX_DISPLAY_HANDLE_T displayHandle = vc_dispmanx_display_open(0);
 
