@@ -27,6 +27,7 @@
 
 #define _GNU_SOURCE
 
+#include <getopt.h>
 #include <math.h>
 #include <png.h>
 #include <stdbool.h>
@@ -198,7 +199,10 @@ pngWriteImageRGBA32(
 
 //-----------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+int
+main(
+    int argc,
+    char *argv[])
 {
     int opt = 0;
 
@@ -218,7 +222,21 @@ int main(int argc, char *argv[])
 
     //-------------------------------------------------------------------
 
-    while ((opt = getopt(argc, argv, "d:h:p:t:vw:")) != -1)
+    char *sopts = "d:Hh:p:t:vw:";
+
+    struct option lopts[] =
+    {
+        { "delay", required_argument, NULL, 'd' },
+        { "height", required_argument, NULL, 'h' },
+        { "help", no_argument, NULL, 'H' },
+        { "pngname", required_argument, NULL, 'p' },
+        { "type", required_argument, NULL, 't' },
+        { "verbose", no_argument, NULL, 'v' },
+        { "width", required_argument, NULL, 'w' },
+        { NULL, no_argument, NULL, 0 }
+    };
+
+    while ((opt = getopt_long(argc, argv, sopts, lopts, NULL)) != -1)
     {
         switch (opt)
         {
@@ -252,22 +270,32 @@ int main(int argc, char *argv[])
             requestedWidth = atoi(optarg);
             break;
 
+        case 'H':
         default:
 
-            fprintf(stderr, "Usage: %s [-p pngname] [-v]", program);
-            fprintf(stderr, " [-w <width>] [-h <height>] [-t <type>]");
-            fprintf(stderr, " [-d <delay>]\n");
+            //-----------------------------------------------------------
 
-            fprintf(stderr, "    -p - name of png file to create ");
+            fprintf(stderr, "Usage: %s [--pngname name]", program);
+            fprintf(stderr, " [--verbose]");
+            fprintf(stderr, " [--width <width>] [--height <height>]");
+            fprintf(stderr, " [--type <type>]");
+            fprintf(stderr, " [--delay <delay>] [--help]\n");
+
+            fprintf(stderr, "\n");
+
+            fprintf(stderr, "    --pngname - name of png file to create ");
             fprintf(stderr, "(default is %s)\n", pngName);
-            fprintf(stderr, "    -v - verbose\n");
 
-            fprintf(stderr,
-                    "    -h - image height (default is screen height)\n");
-            fprintf(stderr,
-                    "    -w - image width (default is screen width)\n");
+            fprintf(stderr, "    --verbose - print verbose/debug ");
+            fprintf(stderr, "information\n");
 
-            fprintf(stderr, "    -t - type of image captured\n");
+            fprintf(stderr, "    --height - image height ");
+            fprintf(stderr, "(default is screen height)\n");
+
+            fprintf(stderr, "    --width - image width ");
+            fprintf(stderr, "(default is screen width)\n");
+
+            fprintf(stderr, "    --type - type of image captured\n");
             fprintf(stderr, "         can be one of the following:");
 
             size_t entry = 0;
@@ -276,8 +304,15 @@ int main(int argc, char *argv[])
                 fprintf(stderr, " %s", imageInfo[entry].name);
             }
             fprintf(stderr, "\n");
-            fprintf(stderr, "    -d - delay in seconds (default 0)\n");
+
+            fprintf(stderr, "    --delay - delay in seconds ");
+            fprintf(stderr, "(default %d)\n", delay);
+
+            fprintf(stderr, "    --help - print this usage information\n");
+
             fprintf(stderr, "\n");
+
+            //-----------------------------------------------------------
 
             exit(EXIT_FAILURE);
             break;
