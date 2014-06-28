@@ -358,24 +358,9 @@ main(
 
     if (vc_gencmd(response, sizeof(response), "get_config int") == 0)
     {
-        char *saveptr = NULL;
-        char *token = strtok_r(response, "\n", &saveptr);
-
-        while (token != NULL)
-        {
-            char setting[100];
-            char value[100];
-
-            if (sscanf(token, "%[^=]=%s", setting, value) == 2)
-            {
-                if (strcmp(setting, "display_rotate") == 0)
-                {
-                    display_rotate = strtod(value, NULL);
-                }
-            }
-
-            token = strtok_r(NULL, "\n", &saveptr);
-        }
+		vc_gencmd_number_property(response,
+								  "display_rotate",
+								  &display_rotate);
     }
 
     // only need to check low bit of display_rotate (value of 1 or 3).
