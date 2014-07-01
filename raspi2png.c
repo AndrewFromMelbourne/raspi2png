@@ -2,7 +2,7 @@
 //
 // The MIT License (MIT)
 //
-// Copyright (c) 2013 Andrew Duncan
+// Copyright (c) 2014 Andrew Duncan
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the
@@ -50,155 +50,6 @@ const char* program = NULL;
 
 //-----------------------------------------------------------------------
 
-typedef struct
-{
-    const char* name;
-    VC_IMAGE_TYPE_T type;
-    int bytesPerPixel;
-}
-ImageInfo;
-
-#define IMAGE_INFO_ENTRY(t, b) \
-    { .name=(#t), .type=(VC_IMAGE_ ## t), .bytesPerPixel=(b) }
-
-ImageInfo imageInfo[] =
-{
-    IMAGE_INFO_ENTRY(RGB565, 2),
-    IMAGE_INFO_ENTRY(RGB888, 3),
-    IMAGE_INFO_ENTRY(RGBA16, 2),
-    IMAGE_INFO_ENTRY(RGBA32, 4)
-};
-
-static size_t imageEntries = sizeof(imageInfo)/sizeof(imageInfo[0]);
-
-//-----------------------------------------------------------------------
-
-void
-pngWriteImageRGB565(
-    int width,
-    int height,
-    int pitch,
-    void* buffer,
-    png_structp pngPtr,
-    png_infop infoPtr)
-{
-    int rowLength = 3 * width;
-    uint8_t *imageRow = malloc(rowLength);
-
-    if (imageRow == NULL)
-    {
-        fprintf(stderr, "%s: unable to allocated row buffer\n", program);
-        exit(EXIT_FAILURE);
-    }
-
-    int y = 0;
-    for (y = 0; y < height; y++)
-    {
-        int x = 0;
-        for (x = 0; x < width; x++)
-        {
-            uint16_t pixels = *(uint16_t*)(buffer + (y * pitch) + (x * 2));
-            int index = x * 3;
-
-            uint8_t r5 = (pixels >> 11) & 0x1F;
-            uint8_t g6 = (pixels >> 5) & 0x3F;
-            uint8_t b5 = (pixels) & 0x1F;
-
-            imageRow[index] =  (r5 << 3) | (r5 >> 2);
-            imageRow[index + 1] =  (g6 << 2) | (g6 >> 4);
-            imageRow[index + 2] =  (b5 << 3) | (b5 >> 2);
-        }
-        png_write_row(pngPtr, imageRow);
-
-    }
-
-    free(imageRow);
-}
-
-//-----------------------------------------------------------------------
-
-void
-pngWriteImageRGB888(
-    int width,
-    int height,
-    int pitch,
-    void* buffer,
-    png_structp pngPtr,
-    png_infop infoPtr)
-{
-    int y = 0;
-    for (y = 0; y < height; y++)
-    {
-        png_write_row(pngPtr, buffer + (pitch * y));
-    }
-}
-
-//-----------------------------------------------------------------------
-
-void
-pngWriteImageRGBA16(
-    int width,
-    int height,
-    int pitch,
-    void* buffer,
-    png_structp pngPtr,
-    png_infop infoPtr)
-{
-    int rowLength = 4 * width;
-    uint8_t *imageRow = malloc(rowLength);
-
-    if (imageRow == NULL)
-    {
-        fprintf(stderr, "%s: unable to allocated row buffer\n", program);
-        exit(EXIT_FAILURE);
-    }
-
-    int y = 0;
-    for (y = 0; y < height; y++)
-    {
-        int x = 0;
-        for (x = 0; x < width; x++)
-        {
-            uint16_t pixels = *(uint16_t*)(buffer + (y * pitch) + (x * 2));
-            int index = x * 4;
-
-            uint8_t r4 = (pixels >> 12) & 0xF;
-            uint8_t g4 = (pixels >> 8) & 0xF;
-            uint8_t b4 = (pixels >> 4) & 0xF;
-            uint8_t a4 = pixels & 0xF;
-
-            imageRow[index] =  (r4 << 4) | r4;
-            imageRow[index + 1] =  (g4 << 4) | g4;
-            imageRow[index + 2] =  (b4 << 4) | b4;
-            imageRow[index + 3] =  (a4 << 4) | a4;
-        }
-        png_write_row(pngPtr, imageRow);
-
-    }
-
-    free(imageRow);
-}
-
-//-----------------------------------------------------------------------
-
-void
-pngWriteImageRGBA32(
-    int width,
-    int height,
-    int pitch,
-    void* buffer,
-    png_structp pngPtr,
-    png_infop infoPtr)
-{
-    int y = 0;
-    for (y = 0; y < height; y++)
-    {
-        png_write_row(pngPtr, buffer + (pitch * y));
-    }
-}
-
-//-----------------------------------------------------------------------
-
 int
 main(
     int argc,
@@ -207,14 +58,12 @@ main(
     int opt = 0;
 
     char *pngName = "snapshot.png";
-    int requestedWidth = 0;
-    int requestedHeight = 0;
-    bool verbose = false;
+    int32_t requestedWidth = 0;
+    int32_t requestedHeight = 0;
     int delay = 0;
 
-    const char* imageTypeName = "RGB888";
-    VC_IMAGE_TYPE_T imageType = VC_IMAGE_MIN;
-    int bytesPerPixel  = 0;
+    VC_IMAGE_TYPE_T imageType = VC_IMAGE_RGBA32;
+    int8_t dmxBytesPerPixel  = 4;
 
     int result = 0;
 
@@ -222,7 +71,7 @@ main(
 
     //-------------------------------------------------------------------
 
-    char *sopts = "d:Hh:p:t:vw:";
+    char *sopts = "d:Hh:p:w:";
 
     struct option lopts[] =
     {
@@ -230,8 +79,6 @@ main(
         { "height", required_argument, NULL, 'h' },
         { "help", no_argument, NULL, 'H' },
         { "pngname", required_argument, NULL, 'p' },
-        { "type", required_argument, NULL, 't' },
-        { "verbose", no_argument, NULL, 'v' },
         { "width", required_argument, NULL, 'w' },
         { NULL, no_argument, NULL, 0 }
     };
@@ -255,16 +102,6 @@ main(
             pngName = optarg;
             break;
 
-        case 't':
-
-            imageTypeName = optarg;
-            break;
-
-        case 'v':
-
-            verbose = true;
-            break;
-
         case 'w':
 
             requestedWidth = atoi(optarg);
@@ -276,9 +113,7 @@ main(
             //-----------------------------------------------------------
 
             fprintf(stderr, "Usage: %s [--pngname name]", program);
-            fprintf(stderr, " [--verbose]");
             fprintf(stderr, " [--width <width>] [--height <height>]");
-            fprintf(stderr, " [--type <type>]");
             fprintf(stderr, " [--delay <delay>] [--help]\n");
 
             fprintf(stderr, "\n");
@@ -286,24 +121,11 @@ main(
             fprintf(stderr, "    --pngname - name of png file to create ");
             fprintf(stderr, "(default is %s)\n", pngName);
 
-            fprintf(stderr, "    --verbose - print verbose/debug ");
-            fprintf(stderr, "information\n");
-
             fprintf(stderr, "    --height - image height ");
             fprintf(stderr, "(default is screen height)\n");
 
             fprintf(stderr, "    --width - image width ");
             fprintf(stderr, "(default is screen width)\n");
-
-            fprintf(stderr, "    --type - type of image captured\n");
-            fprintf(stderr, "         can be one of the following:");
-
-            size_t entry = 0;
-            for (entry = 0; entry < imageEntries; entry++)
-            {
-                fprintf(stderr, " %s", imageInfo[entry].name);
-            }
-            fprintf(stderr, "\n");
 
             fprintf(stderr, "    --delay - delay in seconds ");
             fprintf(stderr, "(default %d)\n", delay);
@@ -314,32 +136,17 @@ main(
 
             //-----------------------------------------------------------
 
-            exit(EXIT_FAILURE);
+            if (opt == 'H')
+            {
+                exit(EXIT_SUCCESS);
+            }
+            else
+            {
+                exit(EXIT_FAILURE);
+            }
+
             break;
         }
-    }
-
-    //-------------------------------------------------------------------
-
-    size_t entry = 0;
-    for (entry = 0; entry < imageEntries; entry++)
-    {
-        if (strcasecmp(imageTypeName, imageInfo[entry].name) == 0)
-        {
-            imageType = imageInfo[entry].type;
-            bytesPerPixel =  imageInfo[entry].bytesPerPixel;
-            break;
-        }
-    }
-
-    if (imageType == VC_IMAGE_MIN)
-    {
-        fprintf(stderr,
-                "%s: unknown image type %s\n",
-                program,
-                imageTypeName);
-
-        exit(EXIT_FAILURE);
     }
 
     //-------------------------------------------------------------------
@@ -348,41 +155,24 @@ main(
 
     //-------------------------------------------------------------------
     //
-    // Calling vc_dispmanx_snapshot() fails when the display is rotate
-    // either 90 or 270 degrees. It sometimes causes the program to hang.
-    // check the config to make sure the screen is not rotated.
+    // When the display is rotate (either 90 or 270 degrees) we need to
+    // swap the width and height of the snapshot
     //
 
     char response[1024];
-    int display_rotate = 0;
+    int displayRotated = 0;
 
     if (vc_gencmd(response, sizeof(response), "get_config int") == 0)
     {
-		vc_gencmd_number_property(response,
-								  "display_rotate",
-								  &display_rotate);
-    }
-
-    // only need to check low bit of display_rotate (value of 1 or 3).
-
-    if (display_rotate & 1)
-    {
-        fprintf(stderr,
-                "%s: cannot create screenshot for rotated display\n",
-                program);
-
-        exit(EXIT_FAILURE);
+        vc_gencmd_number_property(response,
+                                  "display_rotate",
+                                  &displayRotated);
     }
 
     //-------------------------------------------------------------------
 
     if (delay)
     {
-        if (verbose)
-        {
-            printf("sleeping for %d seconds ...\n", delay);
-        }
-
         sleep(delay);
     }
 
@@ -399,51 +189,52 @@ main(
         exit(EXIT_FAILURE);
     }
 
-    int width = modeInfo.width;
-    int height = modeInfo.height;
+    int32_t pngWidth = modeInfo.width;
+    int32_t pngHeight = modeInfo.height;
 
     if (requestedWidth > 0)
     {
-        width = requestedWidth;
+        pngWidth = requestedWidth;
 
         if (requestedHeight == 0)
         {
             double numerator = modeInfo.height * requestedWidth;
             double denominator = modeInfo.width;
 
-            height = (int)ceil(numerator / denominator);
+            pngHeight = (int32_t)ceil(numerator / denominator);
         }
     }
 
     if (requestedHeight > 0)
     {
-        height = requestedHeight;
+        pngHeight = requestedHeight;
 
         if (requestedWidth == 0)
         {
             double numerator = modeInfo.width * requestedHeight;
             double denominator = modeInfo.height;
 
-            width = (int)ceil(numerator / denominator);
+            pngWidth = (int32_t)ceil(numerator / denominator);
         }
     }
 
-    int pitch = bytesPerPixel * ALIGN_TO_16(width);
+    //-------------------------------------------------------------------
+    // only need to check low bit of displayRotated (value of 1 or 3).
+    // If the display is rotated either 90 or 270 degrees (value 1 or 3)
+    // the width and height need to be transposed.
 
-    if (verbose)
+    int32_t dmxWidth = pngWidth;
+    int32_t dmxHeight = pngHeight;
+
+    if (displayRotated & 1)
     {
-        printf("screen width = %d\n", modeInfo.width);
-        printf("screen height = %d\n", modeInfo.height);
-        printf("requested width = %d\n", requestedWidth);
-        printf("requested height = %d\n", requestedHeight);
-        printf("image width = %d\n", width);
-        printf("image height = %d\n", height);
-        printf("image type = %s\n", imageTypeName);
-        printf("bytes per pixel = %d\n", bytesPerPixel);
-        printf("pitch = %d\n", pitch);
+        dmxWidth = pngHeight;
+        dmxHeight = pngWidth;
     }
 
-    void *dmxImagePtr = malloc(pitch * height);
+    int32_t dmxPitch = dmxBytesPerPixel * ALIGN_TO_16(dmxWidth);
+
+    void *dmxImagePtr = malloc(dmxPitch * dmxHeight);
 
     if (dmxImagePtr == NULL)
     {
@@ -451,21 +242,18 @@ main(
         exit(EXIT_FAILURE);
     }
 
+    //-------------------------------------------------------------------
+
     uint32_t vcImagePtr = 0;
     DISPMANX_RESOURCE_HANDLE_T resourceHandle;
     resourceHandle = vc_dispmanx_resource_create(imageType,
-                                                 width,
-                                                 height,
+                                                 dmxWidth,
+                                                 dmxHeight,
                                                  &vcImagePtr);
 
     result = vc_dispmanx_snapshot(displayHandle,
                                   resourceHandle,
                                   DISPMANX_NO_ROTATE);
-
-    if (verbose)
-    {
-        printf("vc_dispmanx_snapshot() returned %d\n", result);
-    }
 
     if (result != 0)
     {
@@ -477,17 +265,7 @@ main(
     }
 
     VC_RECT_T rect;
-    result = vc_dispmanx_rect_set(&rect, 0, 0, width, height);
-
-    if (verbose)
-    {
-        printf("vc_dispmanx_rect_set() returned %d\n", result);
-        printf("rect = { %d, %d, %d, %d }\n",
-               rect.x,
-               rect.y,
-               rect.width,
-               rect.height);
-    }
+    result = vc_dispmanx_rect_set(&rect, 0, 0, dmxWidth, dmxHeight);
 
     if (result != 0)
     {
@@ -501,7 +279,7 @@ main(
     result = vc_dispmanx_resource_read_data(resourceHandle,
                                             &rect,
                                             dmxImagePtr,
-                                            pitch);
+                                            dmxPitch);
 
 
     if (result != 0)
@@ -516,24 +294,148 @@ main(
         exit(EXIT_FAILURE);
     }
 
-    if (verbose)
+    vc_dispmanx_resource_delete(resourceHandle);
+    vc_dispmanx_display_close(displayHandle);
+
+    //-------------------------------------------------------------------
+    // Convert from RGBA (32 bit) to RGB (24 bit)
+
+    int8_t pngBytesPerPixel = 3;
+    int32_t pngPitch = pngBytesPerPixel * pngWidth;
+    void *pngImagePtr = malloc(pngPitch * pngHeight);
+
+    int32_t j = 0;
+    for (j = 0 ; j < pngHeight ; j++)
     {
-        printf("vc_dispmanx_resource_read_data() returned %d\n", result);
+        int32_t dmxXoffset = 0;
+        int32_t dmxYoffset = 0;
+
+        switch (displayRotated & 3)
+        {
+        case 0: // 0 degrees
+
+            if (displayRotated & 0x20000) // flip vertical
+            {
+                dmxYoffset = (dmxHeight - j) * dmxPitch;
+            }
+            else
+            {
+                dmxYoffset = j * dmxPitch;
+            }
+
+            break;
+
+        case 1: // 90 degrees
+
+
+            if (displayRotated & 0x20000) // flip vertical
+            {
+                dmxXoffset = j * dmxBytesPerPixel;
+            }
+            else
+            {
+                dmxXoffset = (dmxWidth - j) * dmxBytesPerPixel;
+            }
+
+            break;
+
+        case 2: // 180 degrees
+
+            if (displayRotated & 0x20000) // flip vertical
+            {
+                dmxYoffset = j * dmxPitch;
+            }
+            else
+            {
+                dmxYoffset = (dmxHeight - j) * dmxPitch;
+            }
+
+            break;
+
+        case 3: // 270 degrees
+
+            if (displayRotated & 0x20000) // flip vertical
+            {
+                dmxXoffset = (dmxWidth - j) * dmxBytesPerPixel;
+            }
+            else
+            {
+                dmxXoffset = j * dmxBytesPerPixel;
+            }
+
+            break;
+        }
+
+        int32_t i = 0;
+        for (i = 0 ; i < pngWidth ; i++)
+        {
+            uint8_t *pngPixelPtr = pngImagePtr
+                                 + (i * pngBytesPerPixel)
+                                 + (j * pngPitch);
+
+            switch (displayRotated & 3)
+            {
+            case 0: // 0 degrees
+
+                if (displayRotated & 0x10000) // flip horizontal
+                {
+                    dmxXoffset = (dmxWidth - i) * dmxBytesPerPixel;
+                }
+                else
+                {
+                    dmxXoffset = i * dmxBytesPerPixel;
+                }
+
+                break;
+
+            case 1: // 90 degrees
+
+                if (displayRotated & 0x10000) // flip horizontal
+                {
+                    dmxYoffset = (dmxHeight - i) * dmxPitch;
+                }
+                else
+                {
+                    dmxYoffset = i * dmxPitch;
+                }
+
+                break;
+
+            case 2: // 180 degrees
+
+                if (displayRotated & 0x10000) // flip horizontal
+                {
+                    dmxXoffset = i * dmxBytesPerPixel;
+                }
+                else
+                {
+                    dmxXoffset = (dmxWidth - i) * dmxBytesPerPixel;
+                }
+
+                break;
+
+            case 3: // 270 degrees
+
+                if (displayRotated & 0x10000) // flip horizontal
+                {
+                    dmxYoffset = i * dmxPitch;
+                }
+                else
+                {
+                    dmxYoffset = (dmxHeight - i) * dmxPitch;
+                }
+
+                break;
+            }
+
+            uint8_t *dmxPixelPtr = dmxImagePtr + dmxXoffset + dmxYoffset;
+
+            memcpy(pngPixelPtr, dmxPixelPtr, 3);
+        }
     }
 
-    result = vc_dispmanx_resource_delete(resourceHandle);
-
-    if (verbose)
-    {
-        printf("vc_dispmanx_resource_delete() returned %d\n", result);
-    }
-
-    result = vc_dispmanx_display_close(displayHandle);
-
-    if (verbose)
-    {
-        printf("vc_dispmanx_display_close() returned %d\n", result);
-    }
+    free(dmxImagePtr);
+    dmxImagePtr = NULL;
 
     //-------------------------------------------------------------------
 
@@ -585,16 +487,11 @@ main(
 
     int png_color_type = PNG_COLOR_TYPE_RGB;
 
-    if ((imageType == VC_IMAGE_RGBA16) || (imageType == VC_IMAGE_RGBA32))
-    {
-        png_color_type = PNG_COLOR_TYPE_RGBA;
-    }
-
     png_set_IHDR(
         pngPtr,
         infoPtr,
-        width,
-        height,
+        pngWidth,
+        pngHeight,
         8,
         png_color_type,
         PNG_INTERLACE_NONE,
@@ -603,51 +500,10 @@ main(
 
     png_write_info(pngPtr, infoPtr);
 
-    switch(imageType)
+    int y = 0;
+    for (y = 0; y < pngHeight; y++)
     {
-    case VC_IMAGE_RGB565:
-
-        pngWriteImageRGB565(width,
-                            height,
-                            pitch,
-                            dmxImagePtr,
-                            pngPtr,
-                            infoPtr);
-        break;
-
-    case VC_IMAGE_RGB888:
-
-        pngWriteImageRGB888(width,
-                            height,
-                            pitch,
-                            dmxImagePtr,
-                            pngPtr,
-                            infoPtr);
-        break;
-
-    case VC_IMAGE_RGBA16:
-
-        pngWriteImageRGBA16(width,
-                            height,
-                            pitch,
-                            dmxImagePtr,
-                            pngPtr,
-                            infoPtr);
-        break;
-
-    case VC_IMAGE_RGBA32:
-
-        pngWriteImageRGBA32(width,
-                            height,
-                            pitch,
-                            dmxImagePtr,
-                            pngPtr,
-                            infoPtr);
-        break;
-
-    default:
-
-        break;
+        png_write_row(pngPtr, pngImagePtr + (pngPitch * y));
     }
 
     png_write_end(pngPtr, NULL);
@@ -656,7 +512,8 @@ main(
 
     //-------------------------------------------------------------------
 
-    free(dmxImagePtr);
+    free(pngImagePtr);
+    pngImagePtr = NULL;
 
     return 0;
 }
