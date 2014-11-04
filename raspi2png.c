@@ -121,7 +121,7 @@ main(
 
             fprintf(stderr, "Usage: %s [--pngname name]", program);
             fprintf(stderr, " [--width <width>] [--height <height>]");
-            fprintf(stderr, " [--delay <delay>] [--help]\n");
+            fprintf(stderr, " [--delay <delay>] [--stdout] [--help]\n");
 
             fprintf(stderr, "\n");
 
@@ -136,6 +136,8 @@ main(
 
             fprintf(stderr, "    --delay - delay in seconds ");
             fprintf(stderr, "(default %d)\n", delay);
+
+            fprintf(stderr, "    --stdout - write file to stdout\n");
 
             fprintf(stderr, "    --help - print this usage information\n");
 
