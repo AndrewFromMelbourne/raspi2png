@@ -57,6 +57,7 @@ main(
 {
     int opt = 0;
 
+    bool writeToStdout = false;
     char *pngName = "snapshot.png";
     int32_t requestedWidth = 0;
     int32_t requestedHeight = 0;
@@ -71,7 +72,7 @@ main(
 
     //-------------------------------------------------------------------
 
-    char *sopts = "d:Hh:p:w:";
+    char *sopts = "d:Hh:p:w:s";
 
     struct option lopts[] =
     {
@@ -80,6 +81,7 @@ main(
         { "help", no_argument, NULL, 'H' },
         { "pngname", required_argument, NULL, 'p' },
         { "width", required_argument, NULL, 'w' },
+        { "stdout", no_argument, NULL, 's' },
         { NULL, no_argument, NULL, 0 }
     };
 
@@ -105,6 +107,11 @@ main(
         case 'w':
 
             requestedWidth = atoi(optarg);
+            break;
+
+        case 's':
+
+            writeToStdout = true;
             break;
 
         case 'H':
@@ -470,17 +477,26 @@ main(
         exit(EXIT_FAILURE);
     }
 
-    FILE *pngfp = fopen(pngName, "wb");
+    FILE *pngfp = NULL;
 
-    if (pngfp == NULL)
+    if (writeToStdout)
     {
-        fprintf(stderr,
-                "%s: unable to create %s - %s\n",
-                program,
-                pngName,
-                strerror(errno));
+        pngfp = stdout;
+    }
+    else
+    {
+        pngfp = fopen(pngName, "wb");
 
-        exit(EXIT_FAILURE);
+        if (pngfp == NULL)
+        {
+            fprintf(stderr,
+                    "%s: unable to create %s - %s\n",
+                    program,
+                    pngName,
+                    strerror(errno));
+
+            exit(EXIT_FAILURE);
+        }
     }
 
     png_init_io(pngPtr, pngfp);
@@ -508,7 +524,11 @@ main(
 
     png_write_end(pngPtr, NULL);
     png_destroy_write_struct(&pngPtr, &infoPtr);
-    fclose(pngfp);
+
+    if (pngfp != stdout)
+    {
+        fclose(pngfp);
+    }
 
     //-------------------------------------------------------------------
 
