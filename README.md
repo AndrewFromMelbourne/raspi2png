@@ -9,6 +9,7 @@ Utility to take a snapshot of the raspberry pi screen and save it as a PNG file
     --height,-h - image height (default is screen height)
     --width,-w - image width (default is screen width)
     --delay,-d - delay in seconds (default 0)
+	--stdout,-s - write file to stdout
     --help,-H - print this usage information
 
 building
