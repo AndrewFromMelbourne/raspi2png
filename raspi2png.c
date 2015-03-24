@@ -61,6 +61,7 @@ main(
     char *pngName = "snapshot.png";
     int32_t requestedWidth = 0;
     int32_t requestedHeight = 0;
+    uint32_t displayNumber = 0;
     int delay = 0;
 
     VC_IMAGE_TYPE_T imageType = VC_IMAGE_RGBA32;
@@ -72,11 +73,12 @@ main(
 
     //-------------------------------------------------------------------
 
-    char *sopts = "d:Hh:p:w:s";
+    char *sopts = "d:D:Hh:p:w:s";
 
     struct option lopts[] =
     {
         { "delay", required_argument, NULL, 'd' },
+        { "display", required_argument, NULL, 'D' },
         { "height", required_argument, NULL, 'h' },
         { "help", no_argument, NULL, 'H' },
         { "pngname", required_argument, NULL, 'p' },
@@ -92,6 +94,11 @@ main(
         case 'd':
 
             delay = atoi(optarg);
+            break;
+
+        case 'D':
+
+            displayNumber = atoi(optarg);
             break;
 
         case 'h':
@@ -121,7 +128,8 @@ main(
 
             fprintf(stderr, "Usage: %s [--pngname name]", program);
             fprintf(stderr, " [--width <width>] [--height <height>]");
-            fprintf(stderr, " [--delay <delay>] [--stdout] [--help]\n");
+            fprintf(stderr, " [--delay <delay>] [--display <number>]");
+            fprintf(stderr, " [--stdout] [--help]\n");
 
             fprintf(stderr, "\n");
 
@@ -136,6 +144,9 @@ main(
 
             fprintf(stderr, "    --delay - delay in seconds ");
             fprintf(stderr, "(default %d)\n", delay);
+
+            fprintf(stderr, "    --display - Raspberry Pi display number ");
+            fprintf(stderr, "(default %d)\n", displayNumber);
 
             fprintf(stderr, "    --stdout - write file to stdout\n");
 
