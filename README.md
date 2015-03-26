@@ -1,5 +1,4 @@
-raspi2png
-=========
+# raspi2png
 
 Utility to take a snapshot of the raspberry pi screen and save it as a PNG file
 
@@ -13,8 +12,7 @@ Utility to take a snapshot of the raspberry pi screen and save it as a PNG file
 	--stdout,-s - write file to stdout
     --help,-H - print this usage information
 
-building
---------
+## building
 
 You will need to install libpng before you build the program. On Raspbian
 
