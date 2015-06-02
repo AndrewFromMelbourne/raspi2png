@@ -337,7 +337,7 @@ main(
 
             if (displayRotated & 0x20000) // flip vertical
             {
-                dmxYoffset = (dmxHeight - j) * dmxPitch;
+                dmxYoffset = (dmxHeight - j - 1) * dmxPitch;
             }
             else
             {
@@ -355,7 +355,7 @@ main(
             }
             else
             {
-                dmxXoffset = (dmxWidth - j) * dmxBytesPerPixel;
+                dmxXoffset = (dmxWidth - j - 1) * dmxBytesPerPixel;
             }
 
             break;
@@ -368,7 +368,7 @@ main(
             }
             else
             {
-                dmxYoffset = (dmxHeight - j) * dmxPitch;
+                dmxYoffset = (dmxHeight - j - 1) * dmxPitch;
             }
 
             break;
@@ -377,7 +377,7 @@ main(
 
             if (displayRotated & 0x20000) // flip vertical
             {
-                dmxXoffset = (dmxWidth - j) * dmxBytesPerPixel;
+                dmxXoffset = (dmxWidth - j - 1) * dmxBytesPerPixel;
             }
             else
             {
@@ -400,7 +400,7 @@ main(
 
                 if (displayRotated & 0x10000) // flip horizontal
                 {
-                    dmxXoffset = (dmxWidth - i) * dmxBytesPerPixel;
+                    dmxXoffset = (dmxWidth - i - 1) * dmxBytesPerPixel;
                 }
                 else
                 {
@@ -413,7 +413,7 @@ main(
 
                 if (displayRotated & 0x10000) // flip horizontal
                 {
-                    dmxYoffset = (dmxHeight - i) * dmxPitch;
+                    dmxYoffset = (dmxHeight - i - 1) * dmxPitch;
                 }
                 else
                 {
@@ -430,7 +430,7 @@ main(
                 }
                 else
                 {
-                    dmxXoffset = (dmxWidth - i) * dmxBytesPerPixel;
+                    dmxXoffset = (dmxWidth - i - 1) * dmxBytesPerPixel;
                 }
 
                 break;
@@ -443,7 +443,7 @@ main(
                 }
                 else
                 {
-                    dmxYoffset = (dmxHeight - i) * dmxPitch;
+                    dmxYoffset = (dmxHeight - i - 1) * dmxPitch;
                 }
 
                 break;
