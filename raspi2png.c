@@ -46,7 +46,52 @@
 
 //-----------------------------------------------------------------------
 
+#define DEFAULT_DELAY 0
+#define DEFAULT_DISPLAY_NUMBER 0
+#define DEFAULT_NAME "snapshot.png"
+
+//-----------------------------------------------------------------------
+
 const char* program = NULL;
+
+//-----------------------------------------------------------------------
+
+void
+usage(void)
+{
+    fprintf(stderr, "Usage: %s [--pngname name]", program);
+    fprintf(stderr, " [--width <width>] [--height <height>]");
+    fprintf(stderr, " [--compression <level>]");
+    fprintf(stderr, " [--delay <delay>] [--display <number>]");
+    fprintf(stderr, " [--stdout] [--help]\n");
+
+    fprintf(stderr, "\n");
+
+    fprintf(stderr, "    --pngname,-p - name of png file to create ");
+    fprintf(stderr, "(default is %s)\n", DEFAULT_NAME);
+
+    fprintf(stderr, "    --height,-h - image height ");
+    fprintf(stderr, "(default is screen height)\n");
+
+    fprintf(stderr, "    --width,-w - image width ");
+    fprintf(stderr, "(default is screen width)\n");
+
+    fprintf(stderr, "    --compression,-c - PNG compression level ");
+    fprintf(stderr, "(0 - 9)\n");
+
+    fprintf(stderr, "    --delay,-d - delay in seconds ");
+    fprintf(stderr, "(default %d)\n", DEFAULT_DELAY);
+
+    fprintf(stderr, "    --display,-D - Raspberry Pi display number ");
+    fprintf(stderr, "(default %d)\n", DEFAULT_DISPLAY_NUMBER);
+
+    fprintf(stderr, "    --stdout,-s - write file to stdout\n");
+
+    fprintf(stderr, "    --help,-H - print this usage information\n");
+
+    fprintf(stderr, "\n");
+}
+
 
 //-----------------------------------------------------------------------
 
@@ -58,11 +103,12 @@ main(
     int opt = 0;
 
     bool writeToStdout = false;
-    char *pngName = "snapshot.png";
+    char *pngName = DEFAULT_NAME;
     int32_t requestedWidth = 0;
     int32_t requestedHeight = 0;
-    uint32_t displayNumber = 0;
-    int delay = 0;
+    uint32_t displayNumber = DEFAULT_DISPLAY_NUMBER;
+    int compression = Z_DEFAULT_COMPRESSION;
+    int delay = DEFAULT_DELAY;
 
     VC_IMAGE_TYPE_T imageType = VC_IMAGE_RGBA32;
     int8_t dmxBytesPerPixel  = 4;
@@ -73,10 +119,11 @@ main(
 
     //-------------------------------------------------------------------
 
-    char *sopts = "d:D:Hh:p:w:s";
+    char *sopts = "c:d:D:Hh:p:w:s";
 
     struct option lopts[] =
     {
+        { "compression", required_argument, NULL, 'c' },
         { "delay", required_argument, NULL, 'd' },
         { "display", required_argument, NULL, 'D' },
         { "height", required_argument, NULL, 'h' },
@@ -91,6 +138,17 @@ main(
     {
         switch (opt)
         {
+        case 'c':
+
+            compression = atoi(optarg);
+
+            if ((compression < 0) || (compression > 9))
+            {
+                compression = Z_DEFAULT_COMPRESSION;
+            }
+
+            break;
+
         case 'd':
 
             delay = atoi(optarg);
@@ -124,37 +182,7 @@ main(
         case 'H':
         default:
 
-            //-----------------------------------------------------------
-
-            fprintf(stderr, "Usage: %s [--pngname name]", program);
-            fprintf(stderr, " [--width <width>] [--height <height>]");
-            fprintf(stderr, " [--delay <delay>] [--display <number>]");
-            fprintf(stderr, " [--stdout] [--help]\n");
-
-            fprintf(stderr, "\n");
-
-            fprintf(stderr, "    --pngname - name of png file to create ");
-            fprintf(stderr, "(default is %s)\n", pngName);
-
-            fprintf(stderr, "    --height - image height ");
-            fprintf(stderr, "(default is screen height)\n");
-
-            fprintf(stderr, "    --width - image width ");
-            fprintf(stderr, "(default is screen width)\n");
-
-            fprintf(stderr, "    --delay - delay in seconds ");
-            fprintf(stderr, "(default %d)\n", delay);
-
-            fprintf(stderr, "    --display - Raspberry Pi display number ");
-            fprintf(stderr, "(default %d)\n", displayNumber);
-
-            fprintf(stderr, "    --stdout - write file to stdout\n");
-
-            fprintf(stderr, "    --help - print this usage information\n");
-
-            fprintf(stderr, "\n");
-
-            //-----------------------------------------------------------
+            usage();
 
             if (opt == 'H')
             {
@@ -515,18 +543,21 @@ main(
 
     png_init_io(pngPtr, pngfp);
 
-    int png_color_type = PNG_COLOR_TYPE_RGB;
-
     png_set_IHDR(
         pngPtr,
         infoPtr,
         pngWidth,
         pngHeight,
         8,
-        png_color_type,
+        PNG_COLOR_TYPE_RGB,
         PNG_INTERLACE_NONE,
         PNG_COMPRESSION_TYPE_BASE,
         PNG_FILTER_TYPE_BASE);
+
+    if (compression != Z_DEFAULT_COMPRESSION)
+    {
+        png_set_compression_level(pngPtr, compression);
+    }
 
     png_write_info(pngPtr, infoPtr);
 
