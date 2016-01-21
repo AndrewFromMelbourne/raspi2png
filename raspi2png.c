@@ -229,6 +229,12 @@ main(
     DISPMANX_DISPLAY_HANDLE_T displayHandle
         = vc_dispmanx_display_open(displayNumber);
 
+    if (displayHandle == 0)
+    {
+        fprintf(stderr, "%s: unable to open display\n", program);
+        exit(EXIT_FAILURE);
+    }
+
     DISPMANX_MODEINFO_T modeInfo;
     result = vc_dispmanx_display_get_info(displayHandle, &modeInfo);
 
