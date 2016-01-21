@@ -231,7 +231,11 @@ main(
 
     if (displayHandle == 0)
     {
-        fprintf(stderr, "%s: unable to open display\n", program);
+        fprintf(stderr,
+                "%s: unable to open display %d\n",
+                program,
+                displayNumber);
+
         exit(EXIT_FAILURE);
     }
 
