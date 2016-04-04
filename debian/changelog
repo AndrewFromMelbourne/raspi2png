@@ -1,0 +1,5 @@
+raspi2png (0.1-1) unstable; urgency=low
+
+  * debianizing https://github.com/AndrewFromMelbourne/raspi2png
+
+ -- Przemyslaw Wegrzyn <pwegrzyn@codepainters.com>  Mon, 04 Apr 2016 15:55:50 +0000

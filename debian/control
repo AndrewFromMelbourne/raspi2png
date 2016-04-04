@@ -1,0 +1,12 @@
+Source: raspi2png
+Section: utils
+Priority: optional
+Maintainer: Przemyslaw Wegrzyn <pwegrzyn@codepainters.com>
+Build-Depends: debhelper (>= 9), libpng12-dev, libraspberrypi-dev
+Standards-Version: 3.9.5
+Homepage: https://github.com/AndrewFromMelbourne/raspi2png/
+
+Package: raspi2png
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Utility to take a snapshot of the Raspberry Pi screen and save it as a PNG file.
