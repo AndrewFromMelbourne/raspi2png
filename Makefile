@@ -8,6 +8,10 @@ INCLUDES+=-I/opt/vc/include/ -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc
 
 all: $(BIN)
 
+install: $(BIN)
+	install -d -m 755 $(DESTDIR)/usr/bin/
+	install -m 755 $(BIN) $(DESTDIR)/usr/bin/raspi2png
+
 %.o: %.c
 	@rm -f $@ 
 	$(CC) $(CFLAGS) $(INCLUDES) -g -c $< -o $@ -Wno-deprecated-declarations
