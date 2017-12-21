@@ -13,13 +13,11 @@ Utility to take a snapshot of the raspberry pi screen and save it as a PNG file
 	--stdout,-s - write file to stdout
     --help,-H - print this usage information
 
-## Simple Installing
+## Simple Install
 
 Run this command through terminal or CLI screen.
 
-curl -sL https://raw.githubusercontent.com/AndrewFromMelbourne/raspi2png/master/install.sh | bash -
-
-curl -sL https://raw.githubusercontent.com/lashower/raspi2png/master/install.sh | bash -
+curl -sL https://raw.githubusercontent.com/AndrewFromMelbourne/raspi2png/master/installer.sh | bash -
 
 ## Manual Building
 
