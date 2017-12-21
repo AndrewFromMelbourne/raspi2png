@@ -1,3 +1,4 @@
+sudo apt-get install libpng12-dev
 cd ~
 git clone https://github.com/AndrewFromMelbourne/raspi2png.git
 cd raspi2png
