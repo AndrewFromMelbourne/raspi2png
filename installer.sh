@@ -7,3 +7,4 @@ sudo chmod 755 raspi2png
 sudo mv raspi2png /usr/bin
 cd ..
 rm -fr raspi2png
+raspi2png -H
