@@ -13,7 +13,13 @@ Utility to take a snapshot of the raspberry pi screen and save it as a PNG file
 	--stdout,-s - write file to stdout
     --help,-H - print this usage information
 
-## building
+## Simple Install
+
+Run this command through terminal or CLI screen.
+
+curl -sL https://raw.githubusercontent.com/AndrewFromMelbourne/raspi2png/master/installer.sh | bash -
+
+## Manual Building
 
 You will need to install libpng before you build the program. On Raspbian
 
