@@ -203,22 +203,6 @@ main(
     bcm_host_init();
 
     //-------------------------------------------------------------------
-    //
-    // When the display is rotate (either 90 or 270 degrees) we need to
-    // swap the width and height of the snapshot
-    //
-
-    char response[1024];
-    int displayRotated = 0;
-
-    if (vc_gencmd(response, sizeof(response), "get_config int") == 0)
-    {
-        vc_gencmd_number_property(response,
-                                  "display_rotate",
-                                  &displayRotated);
-    }
-
-    //-------------------------------------------------------------------
 
     if (delay)
     {
@@ -279,14 +263,14 @@ main(
     }
 
     //-------------------------------------------------------------------
-    // only need to check low bit of displayRotated (value of 1 or 3).
+    // only need to check low bit of modeInfo.transform (value of 1 or 3).
     // If the display is rotated either 90 or 270 degrees (value 1 or 3)
     // the width and height need to be transposed.
 
     int32_t dmxWidth = pngWidth;
     int32_t dmxHeight = pngHeight;
 
-    if (displayRotated & 1)
+    if (modeInfo.transform & 1)
     {
         dmxWidth = pngHeight;
         dmxHeight = pngWidth;
@@ -370,11 +354,11 @@ main(
         int32_t dmxXoffset = 0;
         int32_t dmxYoffset = 0;
 
-        switch (displayRotated & 3)
+        switch (modeInfo.transform & 3)
         {
         case 0: // 0 degrees
 
-            if (displayRotated & 0x20000) // flip vertical
+            if (modeInfo.transform & 0x20000) // flip vertical
             {
                 dmxYoffset = (dmxHeight - j - 1) * dmxPitch;
             }
@@ -388,7 +372,7 @@ main(
         case 1: // 90 degrees
 
 
-            if (displayRotated & 0x20000) // flip vertical
+            if (modeInfo.transform & 0x20000) // flip vertical
             {
                 dmxXoffset = j * dmxBytesPerPixel;
             }
@@ -401,7 +385,7 @@ main(
 
         case 2: // 180 degrees
 
-            if (displayRotated & 0x20000) // flip vertical
+            if (modeInfo.transform & 0x20000) // flip vertical
             {
                 dmxYoffset = j * dmxPitch;
             }
@@ -414,7 +398,7 @@ main(
 
         case 3: // 270 degrees
 
-            if (displayRotated & 0x20000) // flip vertical
+            if (modeInfo.transform & 0x20000) // flip vertical
             {
                 dmxXoffset = (dmxWidth - j - 1) * dmxBytesPerPixel;
             }
@@ -433,11 +417,11 @@ main(
                                  + (i * pngBytesPerPixel)
                                  + (j * pngPitch);
 
-            switch (displayRotated & 3)
+            switch (modeInfo.transform & 3)
             {
             case 0: // 0 degrees
 
-                if (displayRotated & 0x10000) // flip horizontal
+                if (modeInfo.transform & 0x10000) // flip horizontal
                 {
                     dmxXoffset = (dmxWidth - i - 1) * dmxBytesPerPixel;
                 }
@@ -450,7 +434,7 @@ main(
 
             case 1: // 90 degrees
 
-                if (displayRotated & 0x10000) // flip horizontal
+                if (modeInfo.transform & 0x10000) // flip horizontal
                 {
                     dmxYoffset = (dmxHeight - i - 1) * dmxPitch;
                 }
@@ -463,7 +447,7 @@ main(
 
             case 2: // 180 degrees
 
-                if (displayRotated & 0x10000) // flip horizontal
+                if (modeInfo.transform & 0x10000) // flip horizontal
                 {
                     dmxXoffset = i * dmxBytesPerPixel;
                 }
@@ -476,7 +460,7 @@ main(
 
             case 3: // 270 degrees
 
-                if (displayRotated & 0x10000) // flip horizontal
+                if (modeInfo.transform & 0x10000) // flip horizontal
                 {
                     dmxYoffset = i * dmxPitch;
                 }
