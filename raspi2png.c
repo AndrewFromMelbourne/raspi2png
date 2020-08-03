@@ -48,6 +48,7 @@
 
 //-----------------------------------------------------------------------
 
+#define VERSION "1.1"
 #define DEFAULT_DELAY 0
 #define DEFAULT_DISPLAY_NUMBER 0
 #define DEFAULT_PNG_COMPRESSION 2
@@ -65,6 +66,9 @@ const char* program = NULL;
 void
 usage(void)
 {
+    fprintf(stderr, "%s (%s)\n", program, VERSION);
+    fprintf(stderr, "Utility to take a snapshot of the raspberry pi screen and save it as a PNG file\n\n");
+
     fprintf(stderr, "Usage: %s [--pngname name]", program);
     fprintf(stderr, " [--width <width>] [--height <height>]");
     fprintf(stderr, " [--compression <level>]");
