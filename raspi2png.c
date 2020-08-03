@@ -36,7 +36,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <zlib.h>
-
+#include <time.h>
+#include <sys/stat.h>
 #include "bcm_host.h"
 
 //-----------------------------------------------------------------------
@@ -49,7 +50,9 @@
 
 #define DEFAULT_DELAY 0
 #define DEFAULT_DISPLAY_NUMBER 0
-#define DEFAULT_NAME "snapshot.png"
+#define DEFAULT_NAME_START "snapshot"
+#define DEFAULT_NAME DEFAULT_NAME_START ".png"
+#define MAX_NAME_SIZE 50
 
 //-----------------------------------------------------------------------
 
@@ -93,7 +96,10 @@ usage(void)
     fprintf(stderr, "\n");
 }
 
-
+bool file_exists(char *filename) {
+  struct stat FileStat;
+  return (stat(filename, &FileStat) == 0);
+}
 //-----------------------------------------------------------------------
 
 int
@@ -104,7 +110,9 @@ main(
     int opt = 0;
 
     bool writeToStdout = false;
+    char pngNameWithTimestamp[MAX_NAME_SIZE+1];
     char *pngName = DEFAULT_NAME;
+    bool replace = false;
     int32_t requestedWidth = 0;
     int32_t requestedHeight = 0;
     uint32_t displayNumber = DEFAULT_DISPLAY_NUMBER;
@@ -168,6 +176,7 @@ main(
         case 'p':
 
             pngName = optarg;
+            replace = true;
             break;
 
         case 'w':
@@ -522,8 +531,21 @@ main(
     }
     else
     {
-        pngfp = fopen(pngName, "wb");
+        if (!replace && file_exists(pngName))
+        {
+          time_t rawtime;
+          struct tm *ltime;
+          time(&rawtime);
+          ltime = localtime(&rawtime);
+          int nLen = strlen(DEFAULT_NAME_START);
 
+          strcpy(pngNameWithTimestamp, DEFAULT_NAME_START);
+          strftime(&pngNameWithTimestamp[nLen], MAX_NAME_SIZE-nLen,
+           "_%Y%m%d-%H%M%S.png",ltime);
+          pngName = pngNameWithTimestamp;
+        }
+
+        pngfp = fopen(pngName, "wb");
         if (pngfp == NULL)
         {
             fprintf(stderr,
