@@ -27,3 +27,24 @@ sudo apt-get install libpng12-dev
 
 Then just type 'make' in the raspi2png directory you cloned from github.
 
+## Benchmark
+
+raspi2png 1.1, 720p screen, Raspberry Pi 3 B, RAM-disk
+
+| compression | seconds | size (KiB) |
+|:-:|:----:|-----:|
+| 0 | 0,23 | 2705 | 
+| 1 | 0,42 |  676 |
+| 2 | 0,42 |  654 |
+| 3 | 0,53 |  624 |
+| 4 | 0,57 |  606 |
+| 5 | 0,71 |  593 |
+| 6 | 1,10 |  575 |
+| 7 | 1,46 |  569 |
+| 8 | 3,04 |  564 |
+| 9 | 5,30 |  560 |
+
+optipng size:  ~553 KiB  
+
+
+
