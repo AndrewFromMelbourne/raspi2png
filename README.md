@@ -47,4 +47,6 @@ raspi2png 1.1, 720p screen, Raspberry Pi 3 B, RAM-disk
 optipng size:  ~553 KiB  
 
 
+![Screenshot](https://github.com/GrazerComputerClub/raspi2png/raw/master/screenshot.png)
+
 
