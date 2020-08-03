@@ -50,9 +50,11 @@
 
 #define DEFAULT_DELAY 0
 #define DEFAULT_DISPLAY_NUMBER 0
+#define DEFAULT_PNG_COMPRESSION 2
 #define DEFAULT_NAME_START "snapshot"
 #define DEFAULT_NAME DEFAULT_NAME_START ".png"
 #define MAX_NAME_SIZE 50
+
 
 //-----------------------------------------------------------------------
 
@@ -116,7 +118,7 @@ main(
     int32_t requestedWidth = 0;
     int32_t requestedHeight = 0;
     uint32_t displayNumber = DEFAULT_DISPLAY_NUMBER;
-    int compression = Z_DEFAULT_COMPRESSION;
+    int compression = DEFAULT_PNG_COMPRESSION;
     int delay = DEFAULT_DELAY;
 
     VC_IMAGE_TYPE_T imageType = VC_IMAGE_RGBA32;
