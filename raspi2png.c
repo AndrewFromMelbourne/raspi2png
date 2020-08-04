@@ -73,7 +73,8 @@ usage(void)
     fprintf(stderr, " [--width <width>] [--height <height>]");
     fprintf(stderr, " [--compression <level>]");
     fprintf(stderr, " [--delay <delay>] [--display <number>]");
-    fprintf(stderr, " [--stdout] [--help]\n");
+    fprintf(stderr, " [--stdout] [--savepath path]");
+    fprintf(stderr, " [--help]\n");
 
     fprintf(stderr, "\n");
 
@@ -96,6 +97,8 @@ usage(void)
     fprintf(stderr, "(default %d)\n", DEFAULT_DISPLAY_NUMBER);
 
     fprintf(stderr, "    --stdout,-s - write file to stdout\n");
+
+    fprintf(stderr, "    --savepath,-a - save path\n");
 
     fprintf(stderr, "    --help,-H - print this usage information\n");
 
@@ -134,7 +137,7 @@ main(
 
     //-------------------------------------------------------------------
 
-    char *sopts = "c:d:D:Hh:p:w:s";
+    char *sopts = "c:d:D:Hh:p:w:s:a:";
 
     struct option lopts[] =
     {
@@ -146,6 +149,7 @@ main(
         { "pngname", required_argument, NULL, 'p' },
         { "width", required_argument, NULL, 'w' },
         { "stdout", no_argument, NULL, 's' },
+        { "savepath", required_argument, NULL, 'a' },
         { NULL, no_argument, NULL, 0 }
     };
 
@@ -153,6 +157,11 @@ main(
     {
         switch (opt)
         {
+        case 'a':
+
+            chdir(optarg);
+            break;
+
         case 'c':
 
             compression = atoi(optarg);
