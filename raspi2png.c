@@ -74,7 +74,7 @@ usage(void)
     fprintf(stderr, " [--compression <level>]");
     fprintf(stderr, " [--delay <delay>] [--display <number>]");
     fprintf(stderr, " [--stdout] [--savepath path]");
-    fprintf(stderr, " [--help]\n");
+    fprintf(stderr, " [--version] [--help]\n");
 
     fprintf(stderr, "\n");
 
@@ -99,6 +99,8 @@ usage(void)
     fprintf(stderr, "    --stdout,-s - write file to stdout\n");
 
     fprintf(stderr, "    --savepath,-a - save path\n");
+
+    fprintf(stderr, "    --version,-v - print version number\n");
 
     fprintf(stderr, "    --help,-H - print this usage information\n");
 
@@ -137,7 +139,7 @@ main(
 
     //-------------------------------------------------------------------
 
-    char *sopts = "c:d:D:Hh:p:w:s:a:";
+    char *sopts = "c:d:D:Hh:p:w:s:a:v";
 
     struct option lopts[] =
     {
@@ -146,6 +148,7 @@ main(
         { "display", required_argument, NULL, 'D' },
         { "height", required_argument, NULL, 'h' },
         { "help", no_argument, NULL, 'H' },
+        { "version", no_argument, NULL, 'v' },
         { "pngname", required_argument, NULL, 'p' },
         { "width", required_argument, NULL, 'w' },
         { "stdout", no_argument, NULL, 's' },
@@ -203,6 +206,11 @@ main(
 
             writeToStdout = true;
             break;
+
+        case 'v':
+
+            fprintf(stderr, "%s (%s)\n", program, VERSION);
+            exit(EXIT_SUCCESS);
 
         case 'H':
         default:
