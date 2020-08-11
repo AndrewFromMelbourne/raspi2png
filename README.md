@@ -27,6 +27,20 @@ You will need to install libpng before you build the program. On Raspbian / Rasp
 ``sudo apt-get install libpng12-dev``  
 Then just type 'make' and 'make install' in the raspi2png directory you cloned from github.
 
+## Execute with printscr key (triggerhappy)
+
+create configuration file '/etc/triggerhappy/triggers.d/printscr.conf':
+```
+KEY_SYSRQ	1	/usr/bin/raspi2png -a /home/pi/snapshot
+```
+execute following commands:
+```
+mkdir /home/pi/snapshot
+chmod g+w /home/pi/snapshot 
+sudo chown nobody /home/pi/snapshot
+sudo service triggerhappy restart
+```
+
 ## Benchmark
 
 raspi2png 1.1, 720p screen, Raspberry Pi 3 B, RAM-disk
@@ -35,7 +49,7 @@ raspi2png 1.1, 720p screen, Raspberry Pi 3 B, RAM-disk
 |:-:|:----:|-----:|
 | 0 | 0,23 | 2705 | 
 | 1 | 0,42 |  676 |
-| 2 | 0,42 |  654 |
+| **2** | 0,42 |  654 |
 | 3 | 0,53 |  624 |
 | 4 | 0,57 |  606 |
 | 5 | 0,71 |  593 |
