@@ -38,6 +38,7 @@ execute following commands:
 mkdir /home/pi/snapshot
 chmod g+w /home/pi/snapshot 
 sudo chown nobody /home/pi/snapshot
+sudo adduser nobody video
 sudo service triggerhappy restart
 ```
 
