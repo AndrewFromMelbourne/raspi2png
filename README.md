@@ -27,7 +27,7 @@ You will need to install libpng before you build the program. On Raspbian / Rasp
 ``sudo apt-get install libpng12-dev``  
 Then just type 'make' and 'make install' in the raspi2png directory you cloned from github.
 
-## Execute with printscr key (triggerhappy)
+## Execute with print key (triggerhappy)
 
 create configuration file '/etc/triggerhappy/triggers.d/printscr.conf':
 ```
@@ -41,6 +41,18 @@ sudo chown nobody /home/pi/snapshot
 sudo adduser nobody video
 sudo service triggerhappy restart
 ```
+
+### Hardware GPIO input for print key (BCM26 active low)
+
+Command-line:
+```
+sudo dtoverlay gpio-key gpio=26 keycode=99 label="KEY_SYSRQ" gpio_pull=2
+```
+config.txt:
+```
+dtoverlay=gpio-key,gpio=26,keycode=99,label="KEY_SYSRQ",gpio_pull=2
+```
+
 
 ## Benchmark
 
