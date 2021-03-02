@@ -55,6 +55,8 @@ jobs:
       - name: Build Debian package
         uses: pi-top/action-debian-package@v0.2.2
         with:
+          target_architecture: "armhf"
+          
           source_directory: "${{ github.workspace }}"
           artifacts_directory: "${{ github.workspace }}/artifacts/bin"
 
