@@ -6,10 +6,12 @@ Build-Depends:
  debhelper-compat (= 12),
  libpng-dev,
  libraspberrypi-dev,
-Standards-Version: 4.5.0
+Standards-Version: 4.5.1
 Homepage: https://github.com/AndrewFromMelbourne/raspi2png/
 
 Package: raspi2png
 Architecture: armhf arm64
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Utility to take a snapshot of the Raspberry Pi screen and save it as a PNG file.
+Description: Raspberry Pi Screenshot Utility
+ Utility to take a snapshot of the Raspberry Pi screen and save it as a PNG
+ file.
