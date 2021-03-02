@@ -6,9 +6,9 @@ raspi2png (0.2+nmu1) unstable; urgency=medium
   * Update build dependency: libpng12-dev --> libpng-dev
   * Hard-code possible architectures to ARM only (armhf, arm64)
 
- -- pi-top <deb-maintainers@pi-top.com>  Tue, 02 Mar 2021 11:36:38 +0000
+ -- pi-top <deb-maintainers@pi-top.com>  Tue, 02 Mar 2021 11:48:37 +0000
 
-raspi2png (0.1-1) unstable; urgency=low
+raspi2png (0.1) unstable; urgency=medium
 
   * debianizing https://github.com/AndrewFromMelbourne/raspi2png
 
