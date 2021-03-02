@@ -40,40 +40,6 @@ jobs:
           git tag --force "v${new_version}"
           git push --force --tags
 
-  build-python:
-    needs: [ add-version-tag ]
-    runs-on: ubuntu-20.04
-    steps:
-      - name: GitHub Environment Variables Action
-        uses: FranzDiebold/github-env-vars-action@v1.2.1
-
-      - name: Checkout code
-        uses: actions/checkout@v2.2.0
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.x"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel twine
-
-      - name: Build
-        # Create source distribution (sdist) and wheel (bdist_wheel)
-        # By default, both will be placed in dist/ under the current directory
-        run: |
-          python setup.py sdist bdist_wheel
-
-      - name: Upload Python distribution artifacts
-        uses: actions/upload-artifact@v2
-        with:
-            name: "${{ env.GITHUB_REPOSITORY_NAME }}-#${{ env.GITHUB_SHA_SHORT }}-py"
-            path: "${{ github.workspace }}/dist"
-
   build-debian:
     needs: [ add-version-tag ]
     runs-on: ubuntu-20.04
@@ -119,7 +85,7 @@ jobs:
 
   create-draft-release:
     runs-on: ubuntu-20.04
-    needs: [ build-debian, build-python ]
+    needs: build-debian
     steps:
       - name: GitHub Environment Variables Action
         uses: FranzDiebold/github-env-vars-action@v1.2.1
@@ -149,31 +115,6 @@ jobs:
             The SDK and its related CI workflows are still in active development and subject to breaking changes.
             However, this release is regarded as "fairly stable" and the SDK itself should work in most of the detailed use-cases.
 
-      - name: Download Python artifact
-        uses: actions/download-artifact@v2
-        with:
-            name: "${{ env.GITHUB_REPOSITORY_NAME }}-#${{ env.GITHUB_SHA_SHORT }}-py"
-            path: "./py"
-
-      - name: Get Python wheel filename
-        id: get_py_whl_filename
-        run: |
-          cd ./py
-          WHL_NAME=$(ls | grep "^pitop-.*.whl$")
-          echo "::set-output name=filename::$WHL_NAME"
-
-      # More info:
-      # https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-      - name: Upload Python wheel
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./py/${{ steps.get_py_whl_filename.outputs.filename }}
-          asset_name: ${{ steps.get_py_whl_filename.outputs.filename }}
-          asset_content_type: text/plain
-
       - name: Download Debian binary artifacts
         uses: actions/download-artifact@v2
         with:
@@ -190,7 +131,7 @@ jobs:
         id: get_deb_main_pkg_filename
         run: |
           cd ./deb
-          PKG_NAME=$(ls | grep "^python3-pitop_.*.deb$")
+          PKG_NAME=$(ls | grep "^raspi2png_.*.deb$")
           echo "::set-output name=filename::$PKG_NAME"
 
       - name: Upload main Debian package
@@ -203,28 +144,11 @@ jobs:
           asset_name: ${{ steps.get_deb_main_pkg_filename.outputs.filename }}
           asset_content_type: application/vnd.debian.binary-package
 
-      - name: Get docs package filename
-        id: get_deb_docs_pkg_filename
-        run: |
-          cd ./deb
-          PKG_NAME=$(ls | grep "^python3-pitop-doc_.*.deb$")
-          echo "::set-output name=filename::$PKG_NAME"
-
-      - name: Upload docs Debian package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./deb/${{ steps.get_deb_docs_pkg_filename.outputs.filename }}
-          asset_name: ${{ steps.get_deb_docs_pkg_filename.outputs.filename }}
-          asset_content_type: application/vnd.debian.binary-package
-
       - name: Get dsc filename
         id: get_dsc_filename
         run: |
           cd ./deb-src
-          DSC_FILENAME=$(ls | grep "^py-pitop-sdk_.*.dsc$")
+          DSC_FILENAME=$(ls | grep "^raspi2png_.*.dsc$")
           echo "::set-output name=filename::$DSC_FILENAME"
 
       - name: Upload dsc filename
@@ -241,7 +165,7 @@ jobs:
         id: get_buildinfo_filename
         run: |
           cd ./deb-src
-          BUILDINFO_FILENAME=$(ls | grep "^py-pitop-sdk_.*.buildinfo$")
+          BUILDINFO_FILENAME=$(ls | grep "^raspi2png_.*.buildinfo$")
           echo "::set-output name=filename::$BUILDINFO_FILENAME"
 
       - name: Upload buildinfo filename
@@ -258,7 +182,7 @@ jobs:
         id: get_changes_filename
         run: |
           cd ./deb-src
-          CHANGES_FILENAME=$(ls | grep "^py-pitop-sdk_.*.changes$")
+          CHANGES_FILENAME=$(ls | grep "^raspi2png_.*.changes$")
           echo "::set-output name=filename::$CHANGES_FILENAME"
 
       - name: Upload changes filename
@@ -275,7 +199,7 @@ jobs:
         id: get_source_filename
         run: |
           cd ./deb-src
-          SOURCE_FILENAME=$(ls | grep "^py-pitop-sdk_.*.tar.xz$")
+          SOURCE_FILENAME=$(ls | grep "^raspi2png_.*.tar.xz$")
           echo "::set-output name=filename::$SOURCE_FILENAME"
 
       - name: Upload source filename
