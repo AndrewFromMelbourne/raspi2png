@@ -113,9 +113,6 @@ jobs:
           release_name: "v${{ steps.get_deb_version.outputs.deb_ver }}"
           draft: true
           prerelease: false
-          body: |
-            The SDK and its related CI workflows are still in active development and subject to breaking changes.
-            However, this release is regarded as "fairly stable" and the SDK itself should work in most of the detailed use-cases.
 
       - name: Download Debian binary artifacts
         uses: actions/download-artifact@v2
