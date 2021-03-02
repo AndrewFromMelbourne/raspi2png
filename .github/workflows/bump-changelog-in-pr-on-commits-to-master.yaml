@@ -1,0 +1,73 @@
+name: Create/Update Changelog PR on Commits to 'master'
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.2.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up Debian Docker container for changelog patching
+        run: |
+          docker create --name chglog --volume ${{ github.workspace }}:${{ github.workspace }} --workdir ${{ github.workspace }}/ --tty pitop/gbp-dch-gen:latest sleep inf
+          docker start chglog
+          docker exec chglog git config --global user.name "pi-top"
+          docker exec chglog git config --global user.email "deb-maintainers@pi-top.com"
+
+      # General settings:
+      #     Use git information, not system information
+      #     Ignore branch in case of debugging
+
+      # Bump changelog to latest snapshot, as with CI builds
+      - name: Patch changelog (snapshot)
+        run: |
+          tag=$(git tag -l v* | sort -V | tail -n1)
+          commit=$(git show-ref -s ${tag})
+          commit_diff=$(git rev-list --count ${commit}..HEAD)
+
+          docker exec chglog gbp dch --verbose --git-author --ignore-branch --snapshot \
+            --since=${commit} --snapshot-number=${commit_diff}
+
+      - name: Show updated changelog
+        run: |
+          cat debian/changelog
+
+      # Then squash into one release
+      #   '--spawn-editor=snapshot' = don't try to open text editor
+      - name: Patch changelog (release)
+        run: |
+          docker exec chglog gbp dch --verbose --git-author --ignore-branch --release \
+            --distribution=buster --spawn-editor=snapshot
+
+      - name: Show updated changelog
+        run: |
+          cat debian/changelog
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: ${{ secrets.CI_CHANGELOG_BUMP_BRANCH }}
+          commit-message: Bump debian/changelog with proposed change for next release
+          title: "[CI] Update debian/changelog for next release"
+          body: |
+            Proposal for next version's changelog, automatically updated on each push to master.
+
+            ### Release Process
+            - [ ] Modify the changelog as necessary (e.g. amend version, tidy format)
+            - [ ] Mark as ready for review
+            - [ ] Merge into master
+
+            ### What Happens Next?
+            This will trigger a workflow that [prepares a GitHub Release](../tree/master/.github/workflows/tag-and-draft-release-on-changelog-pr-merge.yml) by tagging the released version in the changelog and creating a draft release.
+            Publishing this Release will trigger the [release deployment](../tree/master/.github/workflows/deploy-release-on-publish.yml) workflow, that uploads to public release repositories, etc.
+
+            Note: tests will not run on this branch until a user acts upon this PR/branch. Close the PR and reopen to trigger tests.
+            See [here](https://github.com/peter-evans/create-pull-request/blob/master/docs/concepts-guidelines.md#triggering-further-workflow-runs) for more info.
+          draft: true
+          labels: "ci"
