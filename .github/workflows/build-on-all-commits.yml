@@ -1,0 +1,72 @@
+name: Build Package on All Commits
+
+# Don't run on branches intended for CI modifications
+on:
+  push:
+    branches-ignore:
+      - "ci-test-*"
+
+jobs:
+  build-debian-package:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: GitHub Environment Variables Action
+        uses: FranzDiebold/github-env-vars-action@v1.2.1
+
+      - name: Checkout code
+        uses: actions/checkout@v2.2.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up Debian Docker container for changelog patching
+        run: |
+          docker create --name chglog --volume ${{ github.workspace }}:${{ github.workspace }} --workdir ${{ github.workspace }}/ --tty pitop/gbp-dch-gen:latest sleep inf
+          docker start chglog
+          docker exec chglog git config --global user.name "pi-top"
+          docker exec chglog git config --global user.email "deb-maintainers@pi-top.com"
+
+      - name: Patch changelog (snapshot)
+        run: |
+          tag=$(git tag -l v* | sort -V | tail -n1)
+          commit=$(git show-ref -s ${tag})
+          commit_diff=$(git rev-list --count ${commit}..HEAD)
+
+          docker exec chglog gbp dch --verbose --git-author --ignore-branch --snapshot \
+            --since=${commit} --snapshot-number=${commit_diff}
+
+      - name: Show updated changelog
+        run: |
+          cat debian/changelog
+
+      - name: Build Debian package
+        uses: pi-top/action-debian-package@v0.2.2
+        with:
+          target_architecture: "armhf"
+
+          source_directory: "${{ github.workspace }}"
+          artifacts_directory: "${{ github.workspace }}/artifacts/bin"
+
+          docker_image: "pitop/deb-build:latest"
+          distribution: "buster-backports"
+
+          lintian_opts: "--dont-check-part nmu --no-tag-display-limit --display-info --show-overrides --fail-on error --fail-on warning --fail-on info"
+          # Package uses latest packaging syntax and Lintian opts/tags
+          dpkg_buildpackage_opts: "--no-sign --no-check-builddeps --post-clean"
+
+      - name: Separate Debian source package files from binary
+        run: |
+          mkdir -p ${{ github.workspace }}/artifacts/src/
+          mv ${{ github.workspace }}/artifacts/bin/* ${{ github.workspace }}/artifacts/src/
+          mv ${{ github.workspace }}/artifacts/src/*.deb ${{ github.workspace }}/artifacts/bin/
+
+      - name: Upload Debian source package files
+        uses: actions/upload-artifact@v2
+        with:
+          name: "${{ env.GITHUB_REPOSITORY_NAME }}-#${{ env.GITHUB_SHA_SHORT }}-deb-src"
+          path: "${{ github.workspace }}/artifacts/src/"
+
+      - name: Upload Debian binary packages
+        uses: actions/upload-artifact@v2
+        with:
+          name: "${{ env.GITHUB_REPOSITORY_NAME }}-#${{ env.GITHUB_SHA_SHORT }}-deb"
+          path: "${{ github.workspace }}/artifacts/bin/"
