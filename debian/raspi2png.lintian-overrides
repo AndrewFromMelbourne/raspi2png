@@ -1,3 +1,1 @@
 raspi2png: no-manual-page usr/bin/raspi2png
-raspi2png: hardening-no-bindnow usr/bin/raspi2png
-raspi2png: hardening-no-fortify-functions usr/bin/raspi2png
