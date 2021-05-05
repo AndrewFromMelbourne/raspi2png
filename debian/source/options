@@ -1,0 +1,4 @@
+diff-ignore
+tar-ignore
+tar-ignore = .github
+tar-ignore = Jenkinsfile
