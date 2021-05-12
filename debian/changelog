@@ -1,3 +1,11 @@
+raspi2png (1:0.1-1+nmu2) unstable; urgency=medium
+
+  * Update package handling
+  * Add tar-ignore to debian/source/options
+  * Drop source/options
+
+ -- pi-top <deb-maintainers@pi-top.com>  Wed, 05 May 2021 13:22:32 +0000
+ 
 raspi2png (1:0.1-1+nmu1) unstable; urgency=medium
 
   * Non-maintainer upload.
