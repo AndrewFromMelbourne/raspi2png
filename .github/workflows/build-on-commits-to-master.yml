@@ -27,7 +27,9 @@ jobs:
       - name: Build Debian package
         run: |
           mkdir -p /tmp/artifacts/{src,bin}
-          docker run --privileged --rm docker/binfmt:a7996909642ee92942dcd6cff44b9b95f08dad64
+          echo "Package requires emulation - starting multiarch/qemu-user-static"
+
+          docker run --rm --privileged multiarch/qemu-user-static:register --reset
           docker run --rm \
             --volume ${{ github.workspace }}:/src \
             --volume /tmp/artifacts/bin:/build \
