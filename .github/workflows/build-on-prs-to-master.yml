@@ -27,9 +27,9 @@ jobs:
       - name: Build Debian package
         run: |
           mkdir -p /tmp/artifacts/{src,bin}
-          echo "Package requires emulation - starting multiarch/qemu-user-static"
+          echo "Package requires emulation - starting tonistiigi/binfmt"
 
-          docker run --rm --privileged multiarch/qemu-user-static:register --reset
+          docker run --rm --privileged tonistiigi/binfmt --install all
           docker run --rm \
             --volume ${{ github.workspace }}:/src \
             --volume /tmp/artifacts/bin:/build \
