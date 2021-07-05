@@ -1,32 +1,12 @@
 name: Create Draft GitHub Release
 
-# Event: Merging Changelog PR (see 'check-should-run')
 on:
-  pull_request:
-    types: [closed]
+  workflow_dispatch:
+    branches:
+      - master
 
 jobs:
-  check-should-run:
-    runs-on: ubuntu-20.04
-    outputs:
-      should_run: ${{ steps.check_should_run.outputs.should_run }}
-    steps:
-      - name: Set 'should run' variable
-        id: check_should_run
-        env:
-          CI_CHANGELOG_BUMP_BRANCH: ${{ secrets.CI_CHANGELOG_BUMP_BRANCH }}
-          PR_MERGED: ${{ github.event.pull_request.merged }}
-        run: |
-          if [[ "${GITHUB_HEAD_REF}" == "${CI_CHANGELOG_BUMP_BRANCH}" ]] && [[ "${PR_MERGED}" == "true" ]]; then
-            conditions_met="true"
-          else
-            conditions_met="false"
-          fi
-          echo "::set-output name=should_run::${conditions_met}"
-
   build-debian:
-    needs: check-should-run
-    if: needs.check-should-run.outputs.should_run == 'true'
     runs-on: ubuntu-20.04
     steps:
       - name: GitHub Environment Variables Action
@@ -38,14 +18,9 @@ jobs:
       - name: Build Debian package
         run: |
           mkdir -p /tmp/artifacts/{src,bin}
-          echo "Package requires emulation - starting tonistiigi/binfmt"
-
-          docker run --rm --privileged tonistiigi/binfmt --install all
           docker run --rm \
             --volume ${{ github.workspace }}:/src \
             --volume /tmp/artifacts/bin:/build \
-            -e LINTIAN_TAGS_TO_SUPPRESS="package-supports-alternative-init-but-no-init.d-script" \
-            --platform=linux/arm/v7 \
             pitop/deb-build:latest
 
       - name: Separate Debian source package files from binary
@@ -99,7 +74,6 @@ jobs:
           name: "v${{ env.VERSION }}"
           draft: true
           prerelease: false
-          body: ${{ secrets.GH_RELEASE_BODY_TEXT }}
           files: |
             ./deb/*
             ./deb-src/*
