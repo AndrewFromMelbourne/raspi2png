@@ -1,0 +1,78 @@
+name: Debian Package Build
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+env:
+  DEB_BUILD_DOCKER_IMAGE: "pitop/pi-top-os-deb-build"
+  DEB_BUILD_DOCKER_TAG: "latest"
+  CHANGELOG_AUTHOR_NAME: "pi-top"
+  CHANGELOG_AUTHOR_EMAIL: "deb-maintainers@pi-top.com"
+
+jobs:
+  build-debian-package:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.2.0
+
+      - id: version
+        uses: docker://lpenz/ghaction-version-gen:0.3
+
+      - name: Add changelog entry for latest snapshot version
+        uses: pi-top/git-debian-changelog-bump-action@master
+        with:
+          release: false
+          author_name: ${{ env.CHANGELOG_AUTHOR_NAME }}
+          author_email: ${{ env.CHANGELOG_AUTHOR_EMAIL }}
+          snapshot_number: ${{ steps.version.outputs.distance }}
+          since: ${{ steps.version.outputs.tag_latest }}
+
+      # We only want ARM builds. This step is here to provide the option of
+      # using a strategy matrix if additional builds (e.g. `arm64`) are desired
+      - name: Determine architecture to use from package info
+        # If architecture is 'all', then it can be compiled on host architecture
+        # All other pi-topOS cases require 'armhf'
+        run: |
+          target_architecture=amd64
+          if grep '^Architecture:' debian/control | grep -q -v 'all'; then
+            target_architecture=armhf
+          fi
+          echo "TARGET_ARCHITECTURE=${target_architecture}" >> $GITHUB_ENV
+
+      - name: Build Debian package
+        uses: pi-top/debian-package-build-action@master
+        with:
+          target_architecture: ${{ env.TARGET_ARCHITECTURE }}
+          docker_image: ${{ env.DEB_BUILD_DOCKER_IMAGE }}:${{ env.DEB_BUILD_DOCKER_TAG }}
+          build_directory: ./artifacts
+
+      - name: Generate artifact name
+        run: |
+          echo "ARTIFACT_PREFIX=$(basename -s .dsc "$(find . -name "*.dsc")")" >> $GITHUB_ENV
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.ARTIFACT_PREFIX }}.deb
+          path: ./artifacts/*.deb
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.ARTIFACT_PREFIX }}.deb-src
+          path: ./artifacts/*.tar.xz
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.ARTIFACT_PREFIX }}.metadata
+          path: |
+            ./artifacts/**
+            !./artifacts/*.deb
+            !./artifacts/*.tar.xz

@@ -1,0 +1,43 @@
+name: Update Debian Package Changelog
+
+on:
+  workflow_dispatch:
+    branches:
+      - master
+
+env:
+  CHANGELOG_AUTHOR_NAME: "pi-top"
+  CHANGELOG_AUTHOR_EMAIL: "deb-maintainers@pi-top.com"
+  COMMIT_MESSAGE_PREFIX: "New changelog entry: v"
+
+jobs:
+  commit-updated-changelog:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.2.0
+
+      - id: version
+        uses: docker://lpenz/ghaction-version-gen:0.3
+
+      - name: Add changelog entry for release version
+        uses: pi-top/git-debian-changelog-bump-action@master
+        with:
+          release: true
+          author_name: ${{ env.CHANGELOG_AUTHOR_NAME }}
+          author_email: ${{ env.CHANGELOG_AUTHOR_EMAIL }}
+          snapshot_number: ${{ steps.version.outputs.distance }}
+          since: ${{ steps.version.outputs.tag_latest }}
+          # Don't include previous changelog version bump commits in changelog
+          ignore_regex: |
+            ${{ env. COMMIT_MESSAGE_PREFIX }}
+
+      - name: Determine current version
+        run: |
+          sudo apt install -y dpkg-dev
+          echo "CURRENT_VERSION=$(dpkg-parsechangelog -Sversion)" >> $GITHUB_ENV
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "${{ env.COMMIT_MESSAGE_PREFIX }}${{ env.CURRENT_VERSION }}"
+          branch: master

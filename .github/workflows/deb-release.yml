@@ -1,0 +1,63 @@
+name: Create GitHub Release
+
+on:
+  workflow_dispatch:
+    branches:
+      - master
+
+env:
+  DEB_BUILD_DOCKER_IMAGE: "pitop/pi-top-os-deb-build"
+  DEB_BUILD_DOCKER_TAG: "latest"
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.2.0
+
+      - id: version
+        uses: docker://lpenz/ghaction-version-gen:0.3
+
+      - name: Determine current and last tagged versions
+        run: |
+          sudo apt install -y dpkg-dev
+          echo "CURRENT_VERSION=$(dpkg-parsechangelog -Sversion)" >> $GITHUB_ENV
+
+      - name: Confirm version is higher than last tagged version
+        if: steps.version.outputs.tag_latest != ""
+        run: dpkg --compare-versions ${{ env.CURRENT_VERSION }} gt ${{ steps.version.outputs.tag_latest }}
+
+      - name: Determine architecture to use from package info
+        # If architecture is 'all', then it can be compiled on host architecture
+        # All other pi-topOS cases require 'armhf'
+        run: |
+          target_architecture=amd64
+          if grep '^Architecture:' debian/control | grep -q -v 'all'; then
+            target_architecture=armhf
+          fi
+          echo "TARGET_ARCHITECTURE=${target_architecture}" >> $GITHUB_ENV
+
+      - name: Build Debian package
+        uses: pi-top/debian-package-build-action@master
+        with:
+          target_architecture: ${{ env.TARGET_ARCHITECTURE }}
+          docker_image: ${{ env.DEB_BUILD_DOCKER_IMAGE }}:${{ env.DEB_BUILD_DOCKER_TAG }}
+          build_directory: ./artifacts
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: "dsc"
+          path: "./artifacts"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "v${{ env.CURRENT_VERSION }}"
+          name: "v${{ env.CURRENT_VERSION }}"
+          draft: false
+          prerelease: false
+          files: ./artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
